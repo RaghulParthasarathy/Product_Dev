@@ -5,8 +5,6 @@ import { Builder } from './pages/Builder';
 import { parseXml } from './steps';
 
 function App() {
- 
-
   return (
     <BrowserRouter>
       <Routes>
