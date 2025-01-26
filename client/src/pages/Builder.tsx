@@ -12,7 +12,7 @@ import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
-import { processFiles } from './wrapper';
+import { processFiles } from './Wrapper';
 
 
 const MOCK_FILE_CONTENT = `// This is a sample file content
