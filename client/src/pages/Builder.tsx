@@ -37,8 +37,63 @@ export function Builder() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
 
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  // const [steps, setSteps] = useState<Step[]>([]);
+  // const [files, setFiles] = useState<FileItem[]>([]);
+
+  const [steps, setSteps] = useState<Step[]>([
+    {
+      id: 1,
+      title: 'Initialize Project',
+      description: 'Set up the project folder structure',
+      type: 'CreateFolder',
+      status: 'completed',
+    },
+    {
+      id: 2,
+      title: 'Create eslint.config.js',
+      description: 'Set up ESLint configuration file',
+      type: 'CreateFile',
+      status: 'pending',
+      code: "import js from '@eslint/js';\nimport globals from 'globals';\n",
+      path: '/eslint.config.js',
+    },
+    {
+      id: 3,
+      title: 'Run initial script',
+      description: 'Run the setup script to initialize the project',
+      type: 'RunScript',
+      status: 'in-progress',
+      code: 'node index.js',
+    },
+  ]);
+  
+  const [files, setFiles] = useState<FileItem[]>([
+    {
+      name: 'src',
+      type: 'folder',
+      children: [
+        {
+          name: 'index.js',
+          type: 'file',
+          content: "// Entry point of the application\nconsole.log('Hello, world!');",
+          path: '/src/index.js',
+        },
+      ],
+      path: '/src',
+    },
+    {
+      name: 'eslint.config.js',
+      type: 'file',
+      content: "import js from '@eslint/js';\nimport globals from 'globals';\n",
+      path: '/eslint.config.js',
+    },
+    {
+      name: 'README.md',
+      type: 'file',
+      content: '# Project Documentation\n\nThis is the initial README for the project.',
+      path: '/README.md',
+    },
+  ]);
 
   //making all files editable
   
