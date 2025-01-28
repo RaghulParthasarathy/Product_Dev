@@ -6,8 +6,10 @@ import { geminiModel } from "./config/genaimodel.js";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts.js";
 import { basePrompt as nodeBasePrompt } from "./src/defaults/node.js";
 import { basePrompt as reactBasePrompt } from "./src/defaults/react.js";
+import authRoutes from "./Routes/Auth.js"
+import projectRoutes from "./Routes/Project.js"
 import cors from "cors";
-import convertToEditable from './abc.js';
+import mongoose from "mongoose";import convertToEditable from './abc.js';
 dotenv.config();
 
 const code = `
@@ -25,6 +27,18 @@ const port = process.env.PORT || 9000;
 
 app.use(cors());
 app.use(express.json());
+
+const mongoURI = process.env.MONGO_URI
+
+// Connect to MongoDB using Mongoose
+mongoose
+  .connect(mongoURI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB', err);
+  });
 
 app.post("/api/v1/template", async (req, res) => {
   const prompt = req.body.prompt;
@@ -115,6 +129,10 @@ app.post("/api/v1/template", async (req, res) => {
   //   }
   // }
 // });
+
+
+app.use('/api/auth', authRoutes);
+app.use('/api/project', projectRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}...`);
