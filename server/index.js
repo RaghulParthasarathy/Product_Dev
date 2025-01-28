@@ -7,8 +7,18 @@ import { BASE_PROMPT, getSystemPrompt } from "./prompts.js";
 import { basePrompt as nodeBasePrompt } from "./src/defaults/node.js";
 import { basePrompt as reactBasePrompt } from "./src/defaults/react.js";
 import cors from "cors";
-
+import convertToEditable from './abc.js';
 dotenv.config();
+
+const code = `
+<div className="container">
+  <p>Hello World</p>
+</div>
+`;
+
+const transformedCode = convertToEditable(code);
+
+console.log(transformedCode);
 
 const app = express();
 const port = process.env.PORT || 9000;
@@ -82,7 +92,6 @@ app.post("/api/v1/template", async (req, res) => {
     }
   });
   
-
   
 
   // let history = [];
