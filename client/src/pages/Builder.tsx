@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { StepsList } from '../components/StepsList';
 import { FileExplorer } from '../components/FileExplorer';
@@ -12,7 +12,7 @@ import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
-import { processFiles } from './Wrapper';
+import { processFiles } from '../pages/Wrapper';
 
 
 const MOCK_FILE_CONTENT = `// This is a sample file content
@@ -48,61 +48,110 @@ export function Builder() {
       type: 'CreateFolder',
       status: 'completed',
     },
-    {
-      id: 2,
-      title: 'Create eslint.config.js',
-      description: 'Set up ESLint configuration file',
-      type: 'CreateFile',
-      status: 'pending',
-      code: "import js from '@eslint/js';\nimport globals from 'globals';\n",
-      path: '/eslint.config.js',
-    },
-    {
-      id: 3,
-      title: 'Run initial script',
-      description: 'Run the setup script to initialize the project',
-      type: 'RunScript',
-      status: 'in-progress',
-      code: 'node index.js',
-    },
-  ]);
-  
-  const [files, setFiles] = useState<FileItem[]>([
-    {
-      name: 'src',
-      type: 'folder',
-      children: [
-        {
-          name: 'index.js',
-          type: 'file',
-          content: "// Entry point of the application\nconsole.log('Hello, world!');",
-          path: '/src/index.js',
-        },
-      ],
-      path: '/src',
-    },
-    {
-      name: 'eslint.config.js',
-      type: 'file',
-      content: "import js from '@eslint/js';\nimport globals from 'globals';\n",
-      path: '/eslint.config.js',
-    },
-    {
-      name: 'README.md',
-      type: 'file',
-      content: '# Project Documentation\n\nThis is the initial README for the project.',
-      path: '/README.md',
-    },
   ]);
 
-  //making all files editable
-  
-  // useEffect(() => {
-  //   if (files.length > 0) {
-  //     const processedFiles = processFiles(files);
-  //     setFiles(processedFiles);
-  //   }
-  // }, [files]);
+  const [files, setFiles] = useState<FileItem[]>([]);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const projectId = '6799f9fea07c7eede4a0c823'; // Replace with dynamic project ID
+        const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
+          params: { projectId }, 
+        });
+        console.log('Fetched files:', response.data.files);
+
+        setFiles(response.data.files); 
+      } catch (error) {
+        console.error('Error fetching files:', error);
+      }
+      
+    };
+
+    fetchFiles();
+  }, []);
+
+  //making all files editable------------------>>>>>>>>
+  // Use a ref to track the last processed files
+  const lastProcessedFilesRef = useRef<FileItem[] | null>(null);
+
+  useEffect(() => {
+    // Prevent infinite loop by checking if files are already processed
+    const processedFiles = processFiles(files);
+
+    if (
+      JSON.stringify(processedFiles) !== JSON.stringify(lastProcessedFilesRef.current)
+    ) {
+      console.log('Processing files:', files);
+      console.log('Processed Files:', processedFiles);
+
+      // Update the ref and state
+      lastProcessedFilesRef.current = processedFiles;
+      setFiles(processedFiles);
+    }
+  }, [files]); // Only run when files change
+
+
+  // Ref to store the previous state of files
+  const prevFilesRef = useRef<FileItem[]>(files);
+  console.log("prevFilesRef", prevFilesRef);
+
+  useEffect(() => {
+    const prevFiles = prevFilesRef.current;
+
+    // Identify added and updated files
+    const addedFiles = files.filter(
+      (currentFile) => !prevFiles.some((prevFile) => prevFile.path === currentFile.path)
+    );
+
+    const updatedFiles = files.filter((currentFile) => {
+      const matchingPrevFile = prevFiles.find((prevFile) => prevFile.path === currentFile.path);
+      return matchingPrevFile && matchingPrevFile.content !== currentFile.content;
+    });
+
+    // Call the backend for added files
+    addedFiles.forEach(async (file) => {
+      console.log("file", file);
+      try {
+        await axios.post(`${BACKEND_URL}/project/uploadFile`, 
+          {
+            projectId: '6799ff6e0c1d7a9c8b557039',
+            name: file.name,
+            path: file.path,
+            content: file.content,
+            type: file.type,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        console.log(`Added file: ${file.path}`);
+      } catch (error) {
+        console.error(`Error adding file: ${file.path}`, error);
+      }
+    });
+
+    // Call the backend for updated files
+    updatedFiles.forEach(async (file) => {
+      try {
+        await axios.put(`${BACKEND_URL}/project/updateFile`, {
+          projectId: '6799ff6e0c1d7a9c8b557039',
+          path: file.path,
+          content: file.content,
+        });
+        console.log(`Updated file: ${file.path}`);
+      } catch (error) {
+        console.error(`Error updating file: ${file.path}`, error);
+      }
+    });
+
+    // Update the ref after processing changes
+    prevFilesRef.current = files;
+  }, [files]);
+
 
   //Folder Structure handled 
   useEffect(() => {
@@ -279,9 +328,9 @@ export function Builder() {
     setLlmMessages(x => [...x, { role: "assistant", content: stepsResponse.data.response }])
   }
 
-  useEffect(() => {
-    init();
-  }, [])
+  // useEffect(() => {
+  //   init();
+  // }, [])
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">

@@ -1,10 +1,35 @@
 import express from 'express';
-import { createProject } from "../Controller/StoreProject"
-import { updateFileCode } from "../Controller/UpdateProject"
+import {
+  createProject,
+  getStyle,
+  updateStyle,
+  uploadFile,
+  deleteAllFiles,
+  updateFile,
+  getFiles,
+} from '../Controller/Project.js';
+
 const router = express.Router();
 
 // Route to create a project with files
 router.post('/create-project', createProject);
-router.put('/update-project', updateFileCode);
+
+// Route to get the style JSON file for a project
+router.get('/getStyle', getStyle);
+
+// Route to update the style JSON file for a project
+router.put('/updateStyle', updateStyle);
+
+// Route to upload a file to a project
+router.post('/uploadFile', uploadFile);
+
+// Route to update a specific file in a project
+router.put('/updateFile', updateFile);
+
+// Route to update a specific file in a project
+router.get('/getAllFiles', getFiles);
+
+// Route to delete all files in a project
+router.delete('/deleteAllFiles', deleteAllFiles);
 
 export default router;

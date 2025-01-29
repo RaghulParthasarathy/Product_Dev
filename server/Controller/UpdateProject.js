@@ -1,6 +1,6 @@
-import User from '../models/User.js';
-import Project from '../models/Project.js';
-import File from '../models/File.js';
+import User from '../Model/User.js';
+import Project from '../Model/Project.js';
+import File from '../Model/File.js';
 
 // Controller to update code in a specific file in a project
 export const updateFileCode = async (req, res) => {

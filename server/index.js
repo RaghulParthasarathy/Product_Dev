@@ -9,36 +9,36 @@ import { basePrompt as reactBasePrompt } from "./src/defaults/react.js";
 import authRoutes from "./Routes/Auth.js"
 import projectRoutes from "./Routes/Project.js"
 import cors from "cors";
-import mongoose from "mongoose";import convertToEditable from './abc.js';
+import convertToEditable from './abc.js';
 dotenv.config();
+import connectToDb from "./config/db_config.js";
 
-const code = `
-<div className="container">
-  <p>Hello World</p>
-</div>
-`;
+// const code = `
+// <div className="container">
+//   <p>Hello World</p>
+// </div>
+// `;
 
-const transformedCode = convertToEditable(code);
+// const transformedCode = convertToEditable(code);
 
-console.log(transformedCode);
+// console.log(transformedCode);
 
 const app = express();
 const port = process.env.PORT || 9000;
 
-app.use(cors());
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies/auth headers if needed
+}));
 app.use(express.json());
-
-const mongoURI = process.env.MONGO_URI
-
-// Connect to MongoDB using Mongoose
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB', err);
-  });
 
 app.post("/api/v1/template", async (req, res) => {
   const prompt = req.body.prompt;
@@ -50,6 +50,7 @@ app.post("/api/v1/template", async (req, res) => {
   ];
 
   const combinedPrompt = prompts.join("\n");
+  console.log(combinedPrompt);
 
   try {
     const result = await geminiModel.generateContent(combinedPrompt);
@@ -131,9 +132,20 @@ app.post("/api/v1/template", async (req, res) => {
 // });
 
 
-app.use('/api/auth', authRoutes);
-app.use('/api/project', projectRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/project', projectRoutes);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}...`);
-});
+const start = async () => {
+  try {
+    await connectToDb(process.env.MONGO_URI);
+    console.log("Database connected successfully!");
+
+    app.listen(port, async () => {
+      console.log(`Server is listening on port ${port}...`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+start();
