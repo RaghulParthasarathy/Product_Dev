@@ -15,14 +15,7 @@ import { Loader } from '../components/Loader';
 import { processFiles } from '../pages/Wrapper';
 
 
-const MOCK_FILE_CONTENT = `// This is a sample file content
-import React from 'react';
-
-function Component() {
-  return <div>Hello World</div>;
-}
-
-export default Component;`;
+const PROJECTID = "679a26655a84fc483c15b205";
 
 export function Builder() {
   const location = useLocation();
@@ -52,105 +45,188 @@ export function Builder() {
 
   const [files, setFiles] = useState<FileItem[]>([]);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
-    const fetchFiles = async () => {
+    const fetchAndProcessFiles = async () => {
+      setIsProcessing(true);
       try {
-        const projectId = '6799f9fea07c7eede4a0c823'; // Replace with dynamic project ID
+        const projectId = "679a25f45a84fc483c15b1f5"; 
         const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
-          params: { projectId }, 
+          params: { projectId },
         });
+
         console.log('Fetched files:', response.data.files);
 
-        setFiles(response.data.files); 
+        const processedFiles = await processFiles(response.data.files, PROJECTID);
+
+        console.log('Processed Files:', processedFiles);
+
+        setFiles(processedFiles);
       } catch (error) {
-        console.error('Error fetching files:', error);
+        console.error('Error fetching or processing files:', error);
+      } finally {
+        setIsProcessing(false);
       }
-      
     };
 
-    fetchFiles();
+    fetchAndProcessFiles();
   }, []);
 
-  //making all files editable------------------>>>>>>>>
-  // Use a ref to track the last processed files
-  const lastProcessedFilesRef = useRef<FileItem[] | null>(null);
+  // const lastProcessedFilesRef = useRef<FileItem[] | null>(null);
+  // const prevFilesRef = useRef<FileItem[]>([]);
 
-  useEffect(() => {
-    // Prevent infinite loop by checking if files are already processed
-    const processedFiles = processFiles(files);
+  // useEffect(() => {
+  //   const fetchFiles = async () => {
+  //     setIsProcessing(true);
+  //     try {
+  //       const projectId = "679a25f45a84fc483c15b1f5";
+  //       const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
+  //         params: { projectId },
+  //       });
+  //       console.log('Fetched files:', response.data.files);
 
-    if (
-      JSON.stringify(processedFiles) !== JSON.stringify(lastProcessedFilesRef.current)
-    ) {
-      console.log('Processing files:', files);
-      console.log('Processed Files:', processedFiles);
+  //       setFiles(response.data.files);
+  //     } catch (error) {
+  //       console.error('Error fetching files:', error);
+  //     } finally {
+  //       setIsProcessing(false); // Release lock
+  //     }
+  //   };
 
-      // Update the ref and state
-      lastProcessedFilesRef.current = processedFiles;
-      setFiles(processedFiles);
-    }
-  }, [files]); // Only run when files change
+  //   fetchFiles();
+  // }, []);
+
+  // // Making all files editable ------------------>>>>>>>>
+  // useEffect(() => {
+  //   if (!files.length || isProcessing) return; // Prevent unnecessary processing or running in parallel
+
+  //   const processAndSetFiles = async () => {
+
+  //     try {
+  //       const processedFiles = await processFiles(files, PROJECTID);
+
+  //       if (
+  //         JSON.stringify(processedFiles) !== JSON.stringify(lastProcessedFilesRef.current)
+  //       ) {
+  //         console.log('Processing files:', files);
+  //         console.log('Processed Files:', processedFiles);
+
+  //         lastProcessedFilesRef.current = processedFiles;
+  //         setFiles(processedFiles);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error processing files:', error);
+  //     }
+  //   };
+
+  //   processAndSetFiles();
+  // }, []);
 
 
-  // Ref to store the previous state of files
-  const prevFilesRef = useRef<FileItem[]>(files);
-  console.log("prevFilesRef", prevFilesRef);
+  // -----------------NEW APPROACH----------------
+  // Sync files useEffect (Runs only when `isProcessing` is false)
 
-  useEffect(() => {
-    const prevFiles = prevFilesRef.current;
+  // useEffect(() => {
+  //   if (!files.length || isProcessing) return; // Don't proceed if files are empty or still being processed
 
-    // Identify added and updated files
-    const addedFiles = files.filter(
-      (currentFile) => !prevFiles.some((prevFile) => prevFile.path === currentFile.path)
-    );
+  //   const syncFiles = async () => {
+  //     setIsProcessing(true);
+  //     try {
+  //       for (const file of files) {
+  //         try {
+  //           const response = await axios.get(`${BACKEND_URL}/project/checkFileExists`, {
+  //             params: { projectId: PROJECTID, path: file.path },
+  //           });
 
-    const updatedFiles = files.filter((currentFile) => {
-      const matchingPrevFile = prevFiles.find((prevFile) => prevFile.path === currentFile.path);
-      return matchingPrevFile && matchingPrevFile.content !== currentFile.content;
-    });
+  //           const fileExists = response.data.exists;
 
-    // Call the backend for added files
-    addedFiles.forEach(async (file) => {
-      console.log("file", file);
-      try {
-        await axios.post(`${BACKEND_URL}/project/uploadFile`, 
-          {
-            projectId: '6799ff6e0c1d7a9c8b557039',
-            name: file.name,
-            path: file.path,
-            content: file.content,
-            type: file.type,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-        
-        console.log(`Added file: ${file.path}`);
-      } catch (error) {
-        console.error(`Error adding file: ${file.path}`, error);
-      }
-    });
+  //           if (fileExists) {
+  //             console.log(`File already exists, updating: ${file.path}`);
 
-    // Call the backend for updated files
-    updatedFiles.forEach(async (file) => {
-      try {
-        await axios.put(`${BACKEND_URL}/project/updateFile`, {
-          projectId: '6799ff6e0c1d7a9c8b557039',
-          path: file.path,
-          content: file.content,
-        });
-        console.log(`Updated file: ${file.path}`);
-      } catch (error) {
-        console.error(`Error updating file: ${file.path}`, error);
-      }
-    });
+  //             await axios.delete(`${BACKEND_URL}/project/deleteFile`, {
+  //               data: { projectId: PROJECTID, path: file.path },
+  //             });
 
-    // Update the ref after processing changes
-    prevFilesRef.current = files;
-  }, [files]);
+  //             console.log(`Deleted file: ${file.path}`);
+  //           } else {
+  //             console.log(`New file detected, uploading: ${file.path}`);
+  //           }
+
+  //           await axios.post(`${BACKEND_URL}/project/uploadFile`,
+  //             {
+  //               projectId: PROJECTID,
+  //               name: file.name,
+  //               path: file.path,
+  //               content: file.content,
+  //               type: file.type,
+  //             },
+  //             {
+  //               headers: {
+  //                 'Content-Type': 'application/json',
+  //               },
+  //             }
+  //           );
+
+  //           console.log(`Uploaded file: ${file.path}`);
+  //         } catch (error) {
+  //           console.error(`Error processing file: ${file.path}`, error.response?.data || error.message);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error syncing files:', error);
+  //     }
+  //     setIsProcessing(false);
+  //   };
+
+  //   // Ensure it only runs when processing is done
+  //   if (JSON.stringify(prevFilesRef.current) !== JSON.stringify(files)) {
+  //     syncFiles();
+  //   }
+
+  //   prevFilesRef.current = files;
+  // }, [files, isProcessing]);
+
+
+  // -------OLD APPROACH----------------
+  // // Ref to store the previous state of files
+  // const prevFilesRef = useRef<FileItem[]>(files);
+  // console.log("prevFilesRef", prevFilesRef);
+
+  // useEffect(() => {
+  //   const prevFiles = prevFilesRef.current;
+
+  //   // Identify added and updated files
+  //   const addedFiles = files.filter(
+  //     (currentFile) => !prevFiles.some((prevFile) => prevFile.path === currentFile.path)
+  //   );
+
+  //   // Call the backend for added files
+  //   addedFiles.forEach(async (file) => {
+  //     console.log("file", file);
+  //     try {
+  //       await axios.post(`${BACKEND_URL}/project/uploadFile`, 
+  //         {
+  //           projectId: '6799ff6e0c1d7a9c8b557039',
+  //           name: file.name,
+  //           path: file.path,
+  //           content: file.content,
+  //           type: file.type,
+  //         },
+  //         {
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //           },
+  //         }
+  //       );
+
+  //       console.log(`Added file: ${file.path}`);
+  //     } catch (error) {
+  //       console.error(`Error adding file: ${file.path}`, error);
+  //     }
+  //   });
+
+  // }, [files]);
 
 
   //Folder Structure handled 

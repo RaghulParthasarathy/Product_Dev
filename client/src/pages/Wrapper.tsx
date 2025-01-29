@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 import { FileItem } from '../types/index.ts';
+import { BACKEND_URL } from '../config';
 
 // List of HTML elements to convert to Editable components
 const EDITABLE_ELEMENTS = [
@@ -35,33 +37,27 @@ const convertToEditable = (code: string): string => {
   let result = code;
 
   EDITABLE_ELEMENTS.forEach((element) => {
-    // Opening tag regex
     const openingRegex = new RegExp(`<(${element})(\\s+[^>]*)?>`, 'g');
-    // Closing tag regex
     const closingRegex = new RegExp(`</(${element})>`, 'g');
-    // Self-closing tag regex
     const selfClosingRegex = new RegExp(`<(${element})(\\s+[^>]*)?/\\s*>`, 'g');
 
-    // Replace opening tags
     result = result.replace(openingRegex, (_, tag, attributes) => {
       const updatedAttributes = addUniqueId(attributes);
       return `<Editable.${tag} ${updatedAttributes}>`;
     });
 
-    // Replace self-closing tags
     result = result.replace(selfClosingRegex, (_, tag, attributes) => {
       const updatedAttributes = addUniqueId(attributes);
       return `<Editable.${tag} ${updatedAttributes} />`;
     });
 
-    // Replace closing tags
     result = result.replace(closingRegex, `</Editable.$1>`);
   });
 
   return result;
 };
 
-// Format the JSX code with proper indentation
+// Format JSX code with proper indentation
 const formatCode = (code: string): string => {
   let indentLevel = 0;
   const indentSize = 2;
@@ -84,27 +80,21 @@ const formatCode = (code: string): string => {
     .join('\n');
 };
 
-// Function to append the import statement without removing existing headers
+// Add import statement
 const addImportStatement = (code: string): string => {
   const importLine = `import { EditModeProvider, Editable } from './editableComponents.js';\n`;
-
   return importLine + code;
-
 };
 
+// Wrap JSX content with <EditModeProvider>
 const wrapWithProvider = (code: string): string => {
-  // Ensure HTML elements are converted to Editable components
   let processedCode = convertToEditable(code);
-
-  // Add import statement at the top
   processedCode = addImportStatement(processedCode);
 
-  // Split into header (imports, comments) and function body
   const lines = processedCode.split('\n');
   const functionStartIndex = lines.findIndex((line) => line.trim().startsWith('function '));
 
   if (functionStartIndex === -1) {
-    // If no function definition is found, return the processed code as is
     console.warn('No function definition found in the code!');
     return processedCode;
   }
@@ -112,7 +102,6 @@ const wrapWithProvider = (code: string): string => {
   const headerLines = lines.slice(0, functionStartIndex);
   const functionLines = lines.slice(functionStartIndex).join('\n');
 
-  // Match the function structure in the function lines
   const functionMatch = functionLines.match(
     /(function\s+\w+\(\)\s*{)([\s\S]*?)(return\s*\()([\s\S]*?)(\s*\);?\s*})/
   );
@@ -120,27 +109,23 @@ const wrapWithProvider = (code: string): string => {
   if (functionMatch) {
     const [_, funcDef, beforeReturn, returnStatement, jsx, closing] = functionMatch;
 
-    // Format the JSX content and wrap it in <EditModeProvider>
     const formattedJsx = formatCode(`
       <EditModeProvider>
         ${jsx}
       </EditModeProvider>
     `);
 
-    // Reconstruct the function with the wrapped JSX
     const wrappedFunction = `${funcDef}${beforeReturn}
   ${returnStatement}
 ${formattedJsx}
   ${closing}`;
 
-    // Combine the header and the reconstructed function
     return [...headerLines, wrappedFunction].join('\n');
   } else {
     console.warn('Function structure not matched. Returning original function.');
     return processedCode;
   }
 };
-
 
 // Process a single file or folder
 const processFileContent = (fileItem: FileItem): FileItem => {
@@ -175,9 +160,50 @@ const processFileContent = (fileItem: FileItem): FileItem => {
   return fileItem;
 };
 
-// Process an array of files
-const processFiles = (files: FileItem[]): FileItem[] => {
-  return files.map((file) => processFileContent(file));
+// Delete all existing files in the backend
+const deleteAllFiles = async (projectId: string) => {
+  try {
+    await axios.delete(`${BACKEND_URL}/deleteAllFiles`, {
+      params: { projectId },
+    });
+    console.log(`All files deleted for project: ${projectId}`);
+  } catch (error) {
+    console.error(`Error deleting files for project ${projectId}:`, error.response?.data || error.message);
+  }
+};
+
+// Upload all processed files
+const uploadFiles = async (files: FileItem[], projectId: string) => {
+  try {
+    for (const file of files) {
+      await axios.post(`${BACKEND_URL}/project/uploadFile`, {
+        projectId,
+        name: file.name,
+        path: file.path,
+        content: file.content,
+        type: file.type,
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      console.log(`Uploaded file: ${file.path}`);
+    }
+  } catch (error) {
+    console.error(`Error uploading files for project ${projectId}:`, error.response?.data || error.message);
+  }
+};
+
+// Process an array of files and handle backend sync
+const processFiles = async (files: FileItem[], projectId: string): Promise<FileItem[]> => {
+  console.log('Processing files for project:', projectId);
+  
+  const processedFiles = files.map((file) => processFileContent(file));
+
+  await deleteAllFiles(projectId);
+  await uploadFiles(processedFiles, projectId);
+
+  console.log('Processing complete for project:', projectId);
+  return processedFiles;
 };
 
 export {

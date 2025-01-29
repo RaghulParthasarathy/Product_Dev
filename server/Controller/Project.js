@@ -154,7 +154,8 @@ export const uploadFile = async (req, res) => {
 
 
 export const deleteAllFiles = async (req, res) => {
-  const { projectId } = req.body;
+  const { projectId } = req.query;
+  console.log('Delete all files request:', req.query);
 
   try {
     // Validate input
@@ -255,5 +256,49 @@ export const getFiles = async (req, res) => {
   } catch (err) {
     console.error(`Error fetching files: ${err.message}`);
     res.status(500).json({ error: 'Server error, unable to fetch files' });
+  }
+};
+
+export const checkFileExists = async (req, res) => {
+  const { projectId, path } = req.query;
+
+  try {
+    if (!projectId || !path) {
+      return res.status(400).json({ error: 'Project ID and file path are required' });
+    }
+
+    const file = await File.findOne({ projectId, path });
+
+    res.status(200).json({ exists: !!file });
+  } catch (error) {
+    console.error('Error checking file existence:', error.message);
+    res.status(500).json({ error: 'Server error while checking file existence' });
+  }
+};
+
+
+export const deleteFile = async (req, res) => {
+  const { projectId, path } = req.body;
+
+  try {
+    if (!projectId || !path) {
+      return res.status(400).json({ error: 'Project ID and file path are required' });
+    }
+
+    const file = await File.findOneAndDelete({ projectId, path });
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Remove the file reference from the project
+    await Project.findByIdAndUpdate(projectId, {
+      $pull: { files: file._id },
+    });
+
+    res.status(200).json({ message: 'File deleted successfully', file });
+  } catch (error) {
+    console.error('Error deleting file:', error.message);
+    res.status(500).json({ error: 'Server error while deleting file' });
   }
 };

@@ -7,6 +7,8 @@ import {
   deleteAllFiles,
   updateFile,
   getFiles,
+  checkFileExists,
+  deleteFile
 } from '../Controller/Project.js';
 
 const router = express.Router();
@@ -31,5 +33,11 @@ router.get('/getAllFiles', getFiles);
 
 // Route to delete all files in a project
 router.delete('/deleteAllFiles', deleteAllFiles);
+
+// Route to check if a file exists in a project
+router.get('/checkFileExists', checkFileExists);
+
+// Route to delete a specific file in a project
+router.delete('/deleteFile', deleteFile);
 
 export default router;
