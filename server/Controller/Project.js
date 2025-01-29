@@ -302,3 +302,36 @@ export const deleteFile = async (req, res) => {
     res.status(500).json({ error: 'Server error while deleting file' });
   }
 };
+
+
+export const updateProjectStyleChanges = async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    const { styleChanges } = req.body;
+
+    // // Validate project ID
+    // if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    //   return res.status(400).json({ message: 'Invalid project ID' });
+    // }
+
+    // Find and update project
+    const updatedProject = await Project.findByIdAndUpdate(
+      projectId,
+      { styleChanges },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.status(200).json({
+      message: 'Style changes updated successfully',
+      project: updatedProject,
+    });
+
+  } catch (error) {
+    console.error('Error updating styleChanges:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

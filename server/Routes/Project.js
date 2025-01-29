@@ -8,7 +8,8 @@ import {
   updateFile,
   getFiles,
   checkFileExists,
-  deleteFile
+  deleteFile,
+  updateProjectStyleChanges
 } from '../Controller/Project.js';
 
 const router = express.Router();
@@ -39,5 +40,8 @@ router.get('/checkFileExists', checkFileExists);
 
 // Route to delete a specific file in a project
 router.delete('/deleteFile', deleteFile);
+
+// Route to update styleChanges in a project
+router.put('/save-style', updateProjectStyleChanges);
 
 export default router;

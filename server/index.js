@@ -24,7 +24,7 @@ import connectToDb from "./config/db_config.js";
 // console.log(transformedCode);
 
 const app = express();
-const port = process.env.PORT || 9000;
+const port = 5001;
 
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
 
