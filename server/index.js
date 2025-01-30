@@ -24,7 +24,7 @@ import connectToDb from "./config/db_config.js";
 // console.log(transformedCode);
 
 const app = express();
-const port = 5001;
+const port = 3000;
 
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
 
@@ -130,7 +130,6 @@ app.post("/api/v1/template", async (req, res) => {
   //   }
   // }
 // });
-
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/project', projectRoutes);

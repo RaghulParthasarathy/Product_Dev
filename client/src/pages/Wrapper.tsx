@@ -24,12 +24,14 @@ const isReactComponent = (content: string): boolean => {
 
 // Add a unique ID to an element only if it doesn't already have an ID
 const addUniqueId = (attributes: string | undefined): string => {
-  if (!attributes) {
-    return ` id="${uuidv4()}"`;
+  if (!attributes || attributes.trim() === "") {
+    return ` id="${uuidv4()}"`; // ✅ If no attributes exist, return only the id
   }
 
-  const hasId = /id=['"]\w+['"]/.test(attributes);
-  return hasId ? attributes : ` id="${uuidv4()}" ${attributes.trim()}`;
+  // ✅ Check if the `id` attribute exists
+  const hasId = /\bid=['"][^'"]+['"]/.test(attributes);
+
+  return hasId ? attributes : `${attributes.trim()} id="${uuidv4()}"`;
 };
 
 // Convert HTML elements to Editable components with unique IDs
@@ -161,16 +163,21 @@ const processFileContent = (fileItem: FileItem): FileItem => {
 };
 
 // Delete all existing files in the backend
-const deleteAllFiles = async (projectId: string) => {
+const deleteAllFiles = async (projectId: string): Promise<void> => {
   try {
-    await axios.delete(`${BACKEND_URL}/deleteAllFiles`, {
-      params: { projectId },
+    const response = await axios.delete(`${BACKEND_URL}/project/deleteAllFiles?projectId=${projectId}`, {
+      headers: { 'Content-Type': 'application/json' },
     });
-    console.log(`All files deleted for project: ${projectId}`);
+    console.log(response.data);
+
+    console.log(`All files deleted successfully for project: ${projectId}`);
   } catch (error) {
     console.error(`Error deleting files for project ${projectId}:`, error.response?.data || error.message);
+    throw error; 
   }
 };
+
+
 
 // Upload all processed files
 const uploadFiles = async (files: FileItem[], projectId: string) => {
@@ -198,8 +205,10 @@ const processFiles = async (files: FileItem[], projectId: string): Promise<FileI
   console.log('Processing files for project:', projectId);
   
   const processedFiles = files.map((file) => processFileContent(file));
+  console.log('Files processed:', processedFiles);
 
   await deleteAllFiles(projectId);
+
   await uploadFiles(processedFiles, projectId);
 
   console.log('Processing complete for project:', projectId);

@@ -155,6 +155,7 @@ export const uploadFile = async (req, res) => {
 
 export const deleteAllFiles = async (req, res) => {
   const { projectId } = req.query;
+  
   console.log('Delete all files request:', req.query);
 
   try {
@@ -332,6 +333,31 @@ export const updateProjectStyleChanges = async (req, res) => {
 
   } catch (error) {
     console.error('Error updating styleChanges:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getProjectStyleChanges = async (req, res) => {
+  try {
+    const { projectId } = req.query;
+
+    // if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+    //   return res.status(400).json({ message: 'Invalid or missing project ID' });
+    // }
+
+    const project = await Project.findById(projectId, 'styleChanges');
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.status(200).json({
+      message: 'Style changes retrieved successfully',
+      styleChanges: project.styleChanges || {},
+    });
+
+  } catch (error) {
+    console.error('Error fetching styleChanges:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

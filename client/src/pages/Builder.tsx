@@ -13,6 +13,7 @@ import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
 import { processFiles } from '../pages/Wrapper';
+import { processFilesWithStyles } from "../utils/processFiles";
 
 
 const PROJECTID = "679a26655a84fc483c15b205";
@@ -51,12 +52,14 @@ export function Builder() {
     const fetchAndProcessFiles = async () => {
       setIsProcessing(true);
       try {
-        const projectId = "679a25f45a84fc483c15b1f5"; 
+        const projectId = "679a25f45a84fc483c15b1f5";
         const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
           params: { projectId },
         });
 
         console.log('Fetched files:', response.data.files);
+        setFiles(response.data.files);
+
 
         const processedFiles = await processFiles(response.data.files, PROJECTID);
 
@@ -408,11 +411,113 @@ export function Builder() {
   //   init();
   // }, [])
 
+  // Delete all existing files in the backend
+  const deleteAllFiles = async (projectId: string): Promise<void> => {
+    try {
+      const response = await axios.delete(`${BACKEND_URL}/project/deleteAllFiles?projectId=${projectId}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      console.log(response.data);
+
+      console.log(`All files deleted successfully for project: ${projectId}`);
+    } catch (error) {
+      console.error(`Error deleting files for project ${projectId}:`, error.response?.data || error.message);
+      throw error;
+    }
+  };
+
+  // Upload all processed files
+  const uploadFiles = async (files: FileItem[], projectId: string) => {
+    try {
+      for (const file of files) {
+        await axios.post(`${BACKEND_URL}/project/uploadFile`, {
+          projectId,
+          name: file.name,
+          path: file.path,
+          content: file.content,
+          type: file.type,
+        }, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        console.log(`Uploaded file: ${file.path}`);
+      }
+    } catch (error) {
+      console.error(`Error uploading files for project ${projectId}:`, error.response?.data || error.message);
+    }
+  };
+
+
+  const handleClick = async () => {
+    console.log("Fetching style changes...");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/v1/project/get-style?projectId=679a26655a84fc483c15b205`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text(); // Get error response as text
+        throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Style changes fetched:", data.styleChanges);
+
+      // Process files using React Recast
+      const updatedFiles = processFilesWithStyles(files, data.styleChanges);
+
+      //////////////////////////////////////////
+
+      // Save the updated files to DB
+      console.log("Saving style changes to DB...");
+      await deleteAllFiles(PROJECTID);
+      await uploadFiles(updatedFiles, PROJECTID);
+
+      //////////////////////////////////////////
+
+      // Update the state with modified files
+      setFiles(updatedFiles);
+
+      console.log("Files updated successfully:", updatedFiles);
+
+    } catch (error) {
+      console.error("Error fetching style changes:", error);
+      throw error; // Propagate error to caller
+    }
+
+    setIsProcessing(false);
+
+  };
+
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
         <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
+        <button
+          className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          onClick={handleClick}
+          disabled={isProcessing} // Disable button while processing
+        >
+          {isProcessing ? "Saving..." : "Save Changes"}
+        </button>
+
+        {isProcessing && (
+          <div className="mt-2 text-gray-700 font-medium">
+            Changes are being made, please wait...
+          </div>
+        )}
+
       </header>
 
       <div className="flex-1 overflow-hidden">
