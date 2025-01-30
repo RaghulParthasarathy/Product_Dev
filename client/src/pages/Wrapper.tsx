@@ -183,22 +183,37 @@ const deleteAllFiles = async (projectId: string): Promise<void> => {
 const uploadFiles = async (files: FileItem[], projectId: string) => {
   try {
     for (const file of files) {
-      await axios.post(`${BACKEND_URL}/project/uploadFile`, {
-        projectId,
-        name: file.name,
-        path: file.path,
-        content: file.content,
-        type: file.type,
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      if (file.type === "folder" && file.children) {
+        // If it's a folder, recursively upload its children
+        console.log(`Entering folder: ${file.path}`);
+        await uploadFiles(file.children, projectId);
+      } else {
+        // Upload file
+        await axios.post(
+          `${BACKEND_URL}/project/uploadFile`,
+          {
+            projectId,
+            name: file.name,
+            path: file.path,
+            content: file.content,
+            type: file.type,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-      console.log(`Uploaded file: ${file.path}`);
+        console.log(`Uploaded file: ${file.path}`);
+      }
     }
   } catch (error) {
-    console.error(`Error uploading files for project ${projectId}:`, error.response?.data || error.message);
+    console.error(
+      `Error uploading files for project ${projectId}:`,
+      error.response?.data || error.message
+    );
   }
 };
+
 
 // Process an array of files and handle backend sync
 const processFiles = async (files: FileItem[], projectId: string): Promise<FileItem[]> => {

@@ -14,7 +14,7 @@ import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
 import { processFiles } from '../pages/Wrapper';
 import { processFilesWithStyles } from "../utils/processFiles";
-
+import fileInfo from "../utils/editableFileInfo.json";
 
 const PROJECTID = "679a26655a84fc483c15b205";
 
@@ -31,50 +31,68 @@ export function Builder() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
 
-  // const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]);
+  // UseState with hardcoded `editableComponents.js`
+  // Hardcoded file structure with `editableComponents.js`
+const initialFiles: FileItem[] = [
+  {
+    name: "src",
+    type: "folder",
+    path: "/src",
+    children: [
+      {
+        name: "editableComponents.js",
+        type: "file",
+        path: "/src/editableComponents.js",
+        content: fileInfo.FileData.content,
+      },
+    ],
+  },
+];
+
+const [files, setFiles] = useState<FileItem[]>(initialFiles);
+
+  // const [steps, setSteps] = useState<Step[]>([
+  //   {
+  //     id: 1,
+  //     title: 'Initialize Project',
+  //     description: 'Set up the project folder structure',
+  //     type: 'CreateFolder',
+  //     status: 'completed',
+  //   },
+  // ]);
+
   // const [files, setFiles] = useState<FileItem[]>([]);
-
-  const [steps, setSteps] = useState<Step[]>([
-    {
-      id: 1,
-      title: 'Initialize Project',
-      description: 'Set up the project folder structure',
-      type: 'CreateFolder',
-      status: 'completed',
-    },
-  ]);
-
-  const [files, setFiles] = useState<FileItem[]>([]);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    const fetchAndProcessFiles = async () => {
-      setIsProcessing(true);
-      try {
-        const projectId = "679a25f45a84fc483c15b1f5";
-        const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
-          params: { projectId },
-        });
+  // useEffect(() => {
+  //   const fetchAndProcessFiles = async () => {
+  //     setIsProcessing(true);
+  //     try {
+  //       const projectId = "679a25f45a84fc483c15b1f5";
+  //       const response = await axios.get(`${BACKEND_URL}/project/getAllFiles`, {
+  //         params: { projectId },
+  //       });
 
-        console.log('Fetched files:', response.data.files);
-        setFiles(response.data.files);
+  //       console.log('Fetched files:', response.data.files);
+  //       setFiles(response.data.files);
 
 
-        const processedFiles = await processFiles(response.data.files, PROJECTID);
+  //       const processedFiles = await processFiles(response.data.files, PROJECTID);
 
-        console.log('Processed Files:', processedFiles);
+  //       console.log('Processed Files:', processedFiles);
 
-        setFiles(processedFiles);
-      } catch (error) {
-        console.error('Error fetching or processing files:', error);
-      } finally {
-        setIsProcessing(false);
-      }
-    };
+  //       setFiles(processedFiles);
+  //     } catch (error) {
+  //       console.error('Error fetching or processing files:', error);
+  //     } finally {
+  //       setIsProcessing(false);
+  //     }
+  //   };
 
-    fetchAndProcessFiles();
-  }, []);
+  //   fetchAndProcessFiles();
+  // }, []);
 
   // const lastProcessedFilesRef = useRef<FileItem[] | null>(null);
   // const prevFilesRef = useRef<FileItem[]>([]);
@@ -296,8 +314,8 @@ export function Builder() {
 
       }))
     }
-    console.log(files);
-    console.log(steps);
+    console.log("files are: ", files);
+    console.log("steps are: ", steps);
 
   }, [steps, files]);
 
@@ -354,10 +372,12 @@ export function Builder() {
   /////init function
 
   async function init() {
+    console.log(prompt);
     const response = await axios.post(`${BACKEND_URL}/template`, {
       prompt: prompt.trim()
     });
     setTemplateSet(true);
+    console.log("response is: ", response.data);
 
     const { prompts, uiPrompts } = response.data;
 
@@ -381,11 +401,11 @@ export function Builder() {
 
     setLoading(false);
 
-    // setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
-    //   ...x,
-    //   status: "pending" as "pending"
-    // }))]);
-    // console.log("new stpes" , steps);
+    setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
+      ...x,
+      status: "pending" as "pending"
+    }))]);
+    console.log("new stpes", steps);
 
     setSteps((prevSteps) => {
       const lastStepId = prevSteps.length > 0 ? Math.max(...prevSteps.map(step => step.id)) : 0;
@@ -407,9 +427,9 @@ export function Builder() {
     setLlmMessages(x => [...x, { role: "assistant", content: stepsResponse.data.response }])
   }
 
-  // useEffect(() => {
-  //   init();
-  // }, [])
+  useEffect(() => {
+    init();
+  }, [])
 
   // Delete all existing files in the backend
   const deleteAllFiles = async (projectId: string): Promise<void> => {
@@ -497,6 +517,53 @@ export function Builder() {
 
   };
 
+  const handlePreview = async () => {
+    setIsProcessing(true);
+
+    try {
+      console.log('Files to process are :', files);
+
+      // Process the files
+      const processedFiles = await processFiles(files, PROJECTID);
+
+      const file = fileInfo.FileData;
+      console.log('file', file);
+
+      setFiles((prevFiles) => {
+        // Clone the files array to avoid mutating state directly
+        let updatedFiles = [...prevFiles];
+      
+        // Find the `src` folder
+        let srcFolder = updatedFiles.find((folder) => folder.name === "src" && folder.type === "folder");
+      
+        if (srcFolder) {
+          // Ensure children exists and is a new reference (for React state updates)
+          srcFolder.children = [...(srcFolder.children || []), {
+            name: file.name,
+            type: file.type,
+            children: [], // Ensure children is an array
+            content: file.content || "", // Ensure content is a string
+            path: file.path,
+          }];
+        }
+      
+        return updatedFiles;
+      });
+      
+      
+      
+
+      console.log('Processed Files:', processedFiles);
+
+      setFiles(processedFiles);
+
+    } catch (error) {
+      console.error('Error fetching or processing files:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
@@ -510,6 +577,15 @@ export function Builder() {
           disabled={isProcessing} // Disable button while processing
         >
           {isProcessing ? "Saving..." : "Save Changes"}
+        </button>
+
+        <button
+          className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          onClick={handlePreview}
+          disabled={isProcessing} // Disable button while processing
+        >
+          "Click here to Preview"
         </button>
 
         {isProcessing && (

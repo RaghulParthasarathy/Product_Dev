@@ -3,14 +3,14 @@ import { Step, StepType } from './types/index';
 /*
  * Parse input XML and convert it into steps.
  * Eg: Input - 
- * <taskArtifact id=\"project-import\" title=\"Project Files\">
- *  <taskAction type=\"file\" filePath=\"eslint.config.js\">
+ * <boltArtifact id=\"project-import\" title=\"Project Files\">
+ *  <boltAction type=\"file\" filePath=\"eslint.config.js\">
  *      import js from '@eslint/j s';\nimport globals from 'globals';\n
- *  </taskAction>
- * <taskAction type="shell">
+ *  </boltAction>
+ * <boltAction type="shell">
  *      node index.js
- * </taskAction>
- * </taskArtifact>
+ * </boltAction>
+ * </boltArtifact>
  * 
  * Output - 
  * [{
@@ -31,8 +31,8 @@ import { Step, StepType } from './types/index';
 
 
 // export function parseXml(response: string): Step[] {
-//     // Extract the XML content between <taskArtifact> tags
-//     const xmlMatch = response.match(/<taskArtifact[^>]*>([\s\S]*?)<\/taskArtifact>/);
+//     // Extract the XML content between <boltArtifact> tags
+//     const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
     
 //     if (!xmlMatch) {
 //       return [];
@@ -55,8 +55,8 @@ import { Step, StepType } from './types/index';
 //       status: 'pending'
 //     });
   
-//     // Regular expression to find taskAction elements
-//     const actionRegex = /<taskAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/taskAction>/g;
+//     // Regular expression to find boltAction elements
+//     const actionRegex = /<boltAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/boltAction>/g;
     
 //     let match;
 //     while ((match = actionRegex.exec(xmlContent)) !== null) {
@@ -90,8 +90,8 @@ import { Step, StepType } from './types/index';
 //   }
 
 export function parseXml(response: string, startId: number = 1): Step[] {
-  // Extract the XML content between <taskArtifact> tags
-  const xmlMatch = response.match(/<taskArtifact[^>]*>([\s\S]*?)<\/taskArtifact>/);
+  // Extract the XML content between <boltArtifact> tags
+  const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
   
   if (!xmlMatch) {
       return [];
@@ -114,8 +114,8 @@ export function parseXml(response: string, startId: number = 1): Step[] {
       status: 'pending'
   });
 
-  // Regular expression to find taskAction elements
-  const actionRegex = /<taskAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/taskAction>/g;
+  // Regular expression to find boltAction elements
+  const actionRegex = /<boltAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/boltAction>/g;
 
   let match;
   while ((match = actionRegex.exec(xmlContent)) !== null) {
