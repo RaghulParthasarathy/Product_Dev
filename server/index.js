@@ -11,20 +11,29 @@ dotenv.config();
 import connectToDb from "./config/db_config.js";
 
 const app = express();
-const port = 3000;
+const port = 5001;
 
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow cookies/auth headers if needed
-}));
+const corsOptions = {
+  origin: "*", 
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type,Authorization"
+};
+
+app.use(cors(corsOptions));
+
+// const allowedOrigins = ['http://localhost:3000', 'http://localhost:5174', 'http://localhost:5173'];
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true, // Allow cookies/auth headers if needed
+// }));
 
 app.use(express.json());
 
@@ -43,14 +52,14 @@ async function listModels() {
   }
 }
 
-listModels();
+// listModels();
 
 
 
 async function main() {
   try {
     const chatCompletion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "o1-mini",
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: "What is ChatGPT and write something about India?" },
@@ -74,12 +83,12 @@ app.post("/api/v1/template", async (req, res) => {
   const combinedPrompt = `${prompt}\nReturn either 'node' or 'react' based on what you think this project should be. Only return a single word either 'node' or 'react'.`;
   console.log(combinedPrompt);
   try {
-    const result = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: combinedPrompt }],
-    });
+    // const result = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [{ role: "user", content: combinedPrompt }],
+    // });
 
-    const answer = result.choices[0].message.content.trim().toLowerCase();
+    const answer = "react";
     console.log(answer);
     if (answer === "react") {
       console.log("React project");
@@ -93,17 +102,17 @@ app.post("/api/v1/template", async (req, res) => {
       return;
     }
 
-    if (answer === "node") {
-      res.json({
-        prompts: [
-          `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodeBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
-        ],
-        uiPrompts: [nodeBasePrompt],
-      });
-      return;
-    }
+    // if (answer === "node") {
+    //   res.json({
+    //     prompts: [
+    //       `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodeBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+    //     ],
+    //     uiPrompts: [nodeBasePrompt],
+    //   });
+    //   return;
+    // }
 
-    res.status(403).json({ message: "You can't access this" });
+    // res.status(403).json({ message: "You can't access this" });
   } catch (error) {
     console.error("Error generating response:", error.message);
     res.status(500).json({ error: "Failed to generate response" });

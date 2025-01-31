@@ -309,6 +309,7 @@ export const updateProjectStyleChanges = async (req, res) => {
   try {
     const { projectId } = req.query;
     const { styleChanges } = req.body;
+    console.log("rq query in put-style is: ",req.query);
 
     // // Validate project ID
     // if (!mongoose.Types.ObjectId.isValid(projectId)) {

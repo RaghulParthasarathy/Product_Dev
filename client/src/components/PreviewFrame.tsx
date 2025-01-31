@@ -7,6 +7,7 @@ interface PreviewFrameProps {
 }
 
 export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
+  console.log("files are here:" , files) ;
   // In a real implementation, this would compile and render the preview
   const [url, setUrl] = useState("");
 
@@ -19,7 +20,7 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
       }
     }));
 
-    await webContainer.spawn('npm', ['run', 'dev']);
+    await webContainer.spawn('npm', ['start']);
 
     // Wait for `server-ready` event
     webContainer.on('server-ready', (port, url) => {
@@ -33,6 +34,7 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
   useEffect(() => {
     main()
   }, [])
+  
   return (
     <div className="h-full flex items-center justify-center text-gray-400">
       {!url && <div className="text-center">

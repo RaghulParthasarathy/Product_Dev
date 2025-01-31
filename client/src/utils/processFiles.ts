@@ -8,28 +8,95 @@ import { FileItem } from "../types/index.ts";
  * @returns {FileItem[]} Updated files list
  */
 
+/**
+ * Converts a JSON string with style keys in camelCase to kebab-case.
+ * @param {string} jsonString - The JSON string containing style data
+ * @returns {string} A new JSON string with kebab-case style keys
+ */
+function convertStyleJSONToKebabCase(jsonString: string): string {
+  try {
+    const jsonData: Record<string, any> = JSON.parse(jsonString); // Parse string to object
+    const newJson: Record<string, any> = {};
+
+    for (const key in jsonData) {
+      if (jsonData.hasOwnProperty(key)) {
+        const item = jsonData[key];
+
+        // If the item has a "styles" field, convert its keys to kebab-case
+        if (item.styles) {
+          newJson[key] = {
+            ...item,
+            styles: Object.fromEntries(
+              Object.entries(item.styles).map(([styleKey, value]) => [
+                styleKey.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase(), // Convert to kebab-case
+                value
+              ])
+            )
+          };
+        } else {
+          newJson[key] = item; // Copy other fields as-is
+        }
+      }
+    }
+
+    return JSON.stringify(newJson, null, 2); // Convert back to string with formatting
+  } catch (error) {
+    console.error("❌ Error parsing JSON:", error);
+    return jsonString; // Return original string if parsing fails
+  }
+}
+
+
+function convertStyleKeysToKebabCase(styleData: Record<string, string>): Record<string, string> {
+  if (!styleData || typeof styleData !== "object") {
+    console.error("❌ Invalid styleData provided:", styleData);
+    return {};
+  }
+
+  const kebabCaseStyles = Object.fromEntries(
+    Object.entries(styleData).map(([key, value]) => {
+      const kebabKey = key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase(); // Convert to kebab-case
+      console.log(`🎨 Converting style key: "${key}" → "${kebabKey}" with value: "${value}"`);
+      return [kebabKey, value];
+    })
+  );
+
+  console.log("✅ Converted styleData:", kebabCaseStyles);
+  return kebabCaseStyles;
+}
+
+
 
 export const processFilesWithStyles = (
   files: FileItem[],
-  styleChanges1: Record<string, { id: string; styles?: Record<string, string>; content?: string }>
-
+  styleChanges: Record<string, { id: string; styles?: Record<string, string>; content?: string }>
 ): FileItem[] => {
-  const styleChanges = JSON.stringify(styleChanges1);
-  console.log(styleChanges);
-  return files.map((file) => {
-    if (file.type !== "file" || !file.content) return file; // Skip folders or empty files
+  console.log("Style Changes:", styleChanges);
+  
 
-    try {
-      console.log(`🔍 Processing file: ${file.name}...`);
-      const updatedCode = updateReactCode(file.content, JSON.stringify(styleChanges));
-      console.log(`✅ File processed successfully: ${file.name}\n`);
-      return { ...file, content: updatedCode }; // Return updated file
-    } catch (error) {
-      console.error(`❌ Error processing file ${file.name}:`, error);
-      return file; // Return original file if processing fails
+
+  return files.map((file) => {
+    if (file.type === "folder" && file.children) {
+      // Recursively process the folder's children
+      console.log(`📂 Entering folder: ${file.path}`);
+      return {
+        ...file,
+        children: processFilesWithStyles(file.children, styleChanges),
+      };
+    } else {
+      try {
+        console.log(`🔍 Processing file: ${file.name}...`);
+        const updatedCode = updateReactCode(file.content, styleChanges);
+        console.log(`✅ File processed successfully: ${file.name}\n`);
+        return { ...file, content: updatedCode }; // Return updated file
+      } catch (error) {
+        console.error(`❌ Error processing file ${file.name}:`, error);
+        return file; // Return original file if processing fails
+      }
     }
   });
 };
+
 
 /**
  * Updates React JSX code based on styleChanges JSON.
@@ -42,21 +109,23 @@ function updateReactCode(codeString: string, jsonString: string): string {
     console.error("❌ Invalid code input for parsing.");
     return codeString;
   }
-  console.log("jsonString is:",jsonString);
-
+  console.log("jsonString is:", jsonString);
+  // const styleChangesKebabCase = convertStyleJSONToKebabCase(jsonString);
+  // console.log("jsonString is:111:", styleChangesKebabCase);
+  // console.log("jsonString2 is:", JSON.stringify(jsonString));
 
   let jsonData;
   try {
     jsonData = JSON.parse(jsonString);
-    jsonData = JSON.parse(jsonData);
-    jsonData = JSON.parse(jsonData);
+    // jsonData = JSON.parse(jsonData);
+    // jsonData = JSON.parse(jsonData);
 
   } catch (error) {
     console.error("❌ Error parsing JSON data:", error);
     return codeString;
   }
-  console.log("filedata is:",codeString);
-  console.log("json is:",jsonData);
+  console.log("filedata is:", codeString);
+  console.log("json is:", jsonData);
 
   let ast;
   try {
@@ -83,7 +152,8 @@ function updateReactCode(codeString: string, jsonString: string): string {
 
       if (idAttr?.value?.value && jsonData[idAttr.value.value]) {
         console.log(`🎯 Found element: <${elementName} id="${idAttr.value.value}">`);
-        const styleData = jsonData[idAttr.value.value].styles;
+        const styleData = convertStyleKeysToKebabCase(jsonData[idAttr.value.value].styles);
+
         const contentData = jsonData[idAttr.value.value].content;
 
 
@@ -97,18 +167,20 @@ function updateReactCode(codeString: string, jsonString: string): string {
           console.log(`🎨 Updating styles for ID ${idAttr.value.value}:`, styleData);
 
           if (styleAttr) {
-            // Update existing `style` attribute
+
             styleAttr.value = recast.types.builders.jsxExpressionContainer(
               recast.types.builders.objectExpression(
                 Object.entries(styleData).map(([key, value]) =>
                   recast.types.builders.property(
                     "init",
-                    recast.types.builders.stringLiteral(key),
+                    recast.types.builders.stringLiteral(key), // Now kebab-case!
                     recast.types.builders.literal(value)
                   )
                 )
               )
             );
+            
+
           } else {
             // Add new `style` attribute
             openingElement.attributes.push(
