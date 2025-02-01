@@ -6,22 +6,31 @@ import { basePrompt as nodeBasePrompt } from "./src/defaults/node.js";
 import { basePrompt as reactBasePrompt } from "./src/defaults/react.js";
 import authRoutes from "./Routes/Auth.js"
 import projectRoutes from "./Routes/Project.js"
+
 import cors from "cors";
 dotenv.config();
 import connectToDb from "./config/db_config.js";
 import OpenAI from "openai";
-
+import cookieParser from "cookie-parser";
 const app = express();
 const port = 5001;
 
 const corsOptions = {
-  origin: "*", 
+  origin: (origin, callback) => {
+    if (!origin) {
+      // Allow non-browser requests like Postman or server-to-server requests
+      return callback(null, true);
+    }
+    return callback(null, origin); // Allow any origin dynamically
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: "Content-Type,Authorization"
+  allowedHeaders: "Content-Type,Authorization",
+  credentials: true, // Allow cookies
 };
 
-app.use(cors(corsOptions));
 
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 
 ////////////
@@ -165,7 +174,9 @@ Consider the contents of ALL files in the project.
   // }
 // });
 
-app.use('/api/v1/auth', authRoutes);
+
+app.use('/api/v1/users', authRoutes);
+
 app.use('/api/v1/project', projectRoutes);
 
 const start = async () => {

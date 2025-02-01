@@ -10,13 +10,17 @@ import {
   checkFileExists,
   deleteFile,
   updateProjectStyleChanges,
-  getProjectStyleChanges
+  getProjectStyleChanges,
+  getAllProjects,
+  getProjectById
 } from '../Controller/Project.js';
+
+import authenticateUser from "../middleware/user.js";
 
 const router = express.Router();
 
 // Route to create a project with files
-router.post('/create-project', createProject);
+router.post('/create-project', authenticateUser, createProject);
 
 // Route to get the style JSON file for a project
 router.get('/getStyle', getStyle);
@@ -47,5 +51,11 @@ router.put('/save-style', updateProjectStyleChanges);
 
 // Route to get styleChanges from a project
 router.get('/get-style', getProjectStyleChanges);
+
+// Route to get all projects of a user
+router.get("/get-all-projects/:userId", authenticateUser, getAllProjects);
+
+// Route to get project details
+router.get("/:projectId", authenticateUser, getProjectById);
 
 export default router;

@@ -8,6 +8,7 @@ dotenv.config();
 // Register a new user
 export const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
+  console.log("request received on registerUser", req.body);
 
   try {
     if (!username || !email || !password) {
@@ -22,6 +23,7 @@ export const registerUser = async (req, res) => {
 
     // Create a new user
     const user = await User.create({ username, email, password });
+    console.log("user created", user);
 
     res.status(201).json({ userId: user._id, username: user.username });
   } catch (err) {
@@ -32,7 +34,7 @@ export const registerUser = async (req, res) => {
 // Login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-
+  console.log("request received on loginUser", email);
   try {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
@@ -62,6 +64,8 @@ export const loginUser = async (req, res) => {
       sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     });
+    
+    console.log("token set in cookie", token); 
 
     res.status(200).json({ userId: user._id, username: user.username });
   } catch (err) {
@@ -69,18 +73,49 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// Get user details
+// Get user details from token
 export const getUser = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    // Get token from cookies
+    const token = req.cookies.token;
+    console.log("token from cookies", token);
+    if (!token) {
+      console.warn("[getUser] No token found in cookies");
+      return res.status(401).json({ error: "Unauthorized, token missing" });
+    }
 
+    // Verify token and extract userId
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    console.log("[getUser] Decoded userId:", userId);
+
+    // Fetch user from DB
     const user = await User.findById(userId);
     if (!user) {
+      console.warn("[getUser] User not found in database");
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({ username: user.username });
+    res.status(200).json({ username: user.username, userId: user._id });
   } catch (err) {
+    console.error("[getUser] Error:", err);
     res.status(500).json({ error: "Server error, unable to fetch user" });
   }
 };
+
+// // Get user details
+// export const getUser = async (req, res) => {
+//   try {
+//     const userId = req.user.userId;
+
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+
+//     res.status(200).json({ username: user.username });
+//   } catch (err) {
+//     res.status(500).json({ error: "Server error, unable to fetch user" });
+//   }
+// };

@@ -1,9 +1,13 @@
-import React from 'react';
+// import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Builder } from './pages/Builder';
-import { parseXml } from './steps';
 import { Landing } from './pages/Landing';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+import CreateProject from './pages/CreateProject';
+import ProjectDetails from './pages/ProjectDetails';
+
 function App() {
   return (
     <BrowserRouter>
@@ -11,6 +15,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/builder" element={<Builder />} />
         <Route path="/landing" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/Profile" element={<Profile />} />
+        <Route path="/create-project" element={<CreateProject />} />
+        <Route path="/projects/:projectId" element={<ProjectDetails />} />
       </Routes>
     </BrowserRouter>
   );
