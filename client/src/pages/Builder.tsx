@@ -12,9 +12,10 @@ import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
-import { processFiles } from '../pages/Wrapper';
+import { processFiles, processFileContent } from '../pages/Wrapper';
 import { processFilesWithStyles } from "../utils/processFiles";
 import fileInfo from "../utils/editableFileInfo.json";
+import sample from "../utils/test_file.json"
 
 const PROJECTID = "679a26655a84fc483c15b205";
 
@@ -31,6 +32,15 @@ export function Builder() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
 
+
+  // // Ensure TypeScript treats fileInfo.FileData as FileItem
+  // const fileDataAsFileItem: FileItem = sample.FileData as FileItem;
+  // console.log("FILE DATA AS FILE ITEM IS ", fileDataAsFileItem);
+  // // Now pass it to processFileContent
+  // const ans = processFileContent(fileDataAsFileItem);
+  // console.log("THAT ANSWER IS ", ans);
+
+
   const [steps, setSteps] = useState<Step[]>([]);
   const [files, setFiles] = useState<FileItem[]>([
     {
@@ -39,637 +49,975 @@ export function Builder() {
       path: '/src',
       children: [
         {
-          name: 'App.js',
-          type: 'file',
-          path: '/src/App.js',
-          content: `
-        import { EditModeProvider, Editable } from './editableComponents.js';
-
-/* eslint-disable react/jsx-pascal-case */
-import './App.css';
-
-function App() {
-  return (
-    <EditModeProvider>
-      <Editable.div id="20a9f5a2-d1f0-4081-9aa6-aacf65d51c7f" className="App">
-        {/* Navbar */}
-        <Editable.nav id="dfabd52b-4f14-4e61-9e09-ae91557bbd18" className="Navbar">
-          <Editable.ul id="cff1b5e1-b8e1-4c8a-9887-17149a403219">
-            <Editable.li id="d0e0cb90-887d-4a1e-876b-be2f785eeb81"><Editable.a id="ec30a6b1-11e7-4101-a227-6e73c2a2f78d" href="#home">Home</Editable.a></Editable.li>
-            <Editable.li id="9e010275-479a-444c-9e8d-cffdc3f4b367"><Editable.a id="2a09ef1c-b5d6-4438-a1eb-4df48fbca6ad" href="#about">About</Editable.a></Editable.li>
-            <Editable.li id="c3aeafa6-0f55-4bed-b85f-11d64be41b7b"><Editable.a id="22c7c6ab-f988-46f3-93f3-57e42846af6c" href="#contact">Contact</Editable.a></Editable.li>
-          </Editable.ul>
-        </Editable.nav>
-
-        {/* Main Content */}
-        <Editable.main id="cde20925-a0d4-4036-9bd6-6d665eb17ba0" className="Main-content">
-          <Editable.h1 id="6c4271aa-9beb-40ac-9b87-0d6103e75643">Welcome to My React Page</Editable.h1>
-          <Editable.p id="890069d1-a563-49dd-bda0-0b34e1002f69">This is a simple React.js page with a navbar, a text box, and a styled div.</Editable.p>
-
-          {/* Text Box */}
-          <Editable.input id="95c96d4d-df7e-47a3-886f-37a4ccdae0d2"
-            className="TextBox"
-            type="text"
-            placeholder="Enter something..."
-          />
-
-          {/* Styled Div */}
-          <Editable.div id="3e41afe6-0a58-42ab-90eb-ad98c29927f6" className="Styled-div">
-            <Editable.p id="b90996f2-21ea-4e90-bbac-a3b15c9ff978">This is a div with a background color and some text inside it!</Editable.p>
-          </Editable.div>
-        </Editable.main>
-      </Editable.div>
-    </EditModeProvider>
-
-  );
-}
-
-export default App;
-        `
-        },
-        {
-          name: 'index.js',
-          type: 'file',
-          path: '/src/index.js',
-          content: `
-        
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-
-
-        
-        `
-        }
-
-        ,
-        {
-          name: 'App.css',
-          type: 'file',
-          path: '/src/App.css',
-          content: `
-        
-/* General styling */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-
-/* Navbar styling */
-.Navbar {
-  background-color: #333;
-  padding: 1rem;
-}
-
-.Navbar ul {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin: 0;
-  padding: 0;
-}
-
-.Navbar ul li a {
-  color: white;
-  text-decoration: none;
-  font-size: 1.2rem;
-}
-
-.Navbar ul li a:hover {
-  text-decoration: underline;
-}
-
-/* Main content styling */
-.Main-content {
-  text-align: center;
-  margin: 2rem;
-}
-
-.Main-content h1 {
-  font-size: 2rem;
-  color: #333;
-}
-
-.Main-content p {
-  font-size: 1.2rem;
-  color: #555;
-}
-
-/* Textbox styling */
-.TextBox {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  width: 50%;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.TextBox:focus {
-  outline: none;
-  border-color: #333;
-}
-
-/* Styled div */
-.Styled-div {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: #f0f8ff; /* Light blue background */
-  border: 2px solid #007acc; /* Blue border */
-  border-radius: 10px;
-  width: 60%;
-  margin-left: auto;
-  margin-right: auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.Styled-div p {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #333;
-  text-align: center;
-}
-
-
-
-        
-        `
-        },
-        {
-          name: 'index.css',
-          type: 'file',
-          path: '/src/index.css',
-          content: `
-        
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-        
-        `
-        },
-        {
           name: 'config.js',
           type: 'file',
           path: '/src/config.js',
           content: `
-        
-export const PROJECTID = "679a26655a84fc483c15b205";
-export const BACKEND_URL = "https://509d-14-139-196-209.ngrok-free.app/api/v1";
-
-
-        
-        `
-        }
-        ,
+              export const PROJECTID = "679a26655a84fc483c15b205";
+              export const BACKEND_URL = "https://96c4-14-139-196-165.ngrok-free.app/api/v1";
+      
+              `
+        },
         {
           name: 'editableComponents.js',
           type: 'file',
           path: '/src/editableComponents.js',
           content: `
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Settings, X } from 'lucide-react';
-import { PROJECTID, BACKEND_URL }from './config';
-import axios from 'axios';
+  import React, { createContext, useContext, useState, useEffect } from 'react';
+  import { Settings, X } from 'lucide-react';
+  import { PROJECTID, BACKEND_URL }from './config';
+  import axios from 'axios';
 
-// Create context for edit mode
-const EditModeContext = createContext();
+  // Create context for edit mode
+  const EditModeContext = createContext();
 
-// Style editor component
-const StyleEditor = ({ styles, onStyleChange, onClose, elementType }) => {
-  console.log(\`Rendering StyleEditor for \${elementType}\`, styles);
-  return (
-    <div className="fixed top-40 right-0 bg-white p-4 shadow-lg rounded-lg border w-72 z-50">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold">Edit {elementType}</h3>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        {[
-          { label: 'Background Color', type: 'color', property: 'backgroundColor', default: '#ffffff' },
-          { label: 'Text Color', type: 'color', property: 'color', default: '#000000' },
-          { label: 'Font Size (px)', type: 'number', property: 'fontSize', default: '16px' },
-          { label: 'Padding (px)', type: 'number', property: 'padding', default: '0px' },
-          { label: 'Margin (px)', type: 'number', property: 'margin', default: '0px' },
-          { label: 'Border Radius (px)', type: 'number', property: 'borderRadius', default: '0px' },
-        ].map(({ label, type, property, default: defaultValue }) => (
-          <div key={property}>
-            <label className="block text-sm mb-1">{label}</label>
-            <input
-              type={type}
-              value={type === 'color' ? styles[property] || defaultValue : parseInt(styles[property] || defaultValue)}
-              onChange={(e) => {
-                console.log(\`Style change: \${property} = \${e.target.value}\`);
-                onStyleChange(property, type === 'color' ? e.target.value : \`\${e.target.value}px\`);
-              }}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Higher-Order Component for making elements editable
-const makeEditable = (WrappedComponent) => {
-  return function EditableComponent(props) {
-    const { editMode, registerElement, updateElement } = useContext(EditModeContext);
-    const [showEditor, setShowEditor] = useState(false);
-    const elementId = props.id;
-    const [styles, setStyles] = useState(props.style || {});
-    const [content, setContent] = useState(props.children || '');
-
-    useEffect(() => {
-      if (editMode) {
-        console.log(\`Registering element \${elementId}\`, { styles, content });
-        registerElement(elementId, { styles, content });
-      }
-    }, [editMode]);
-
-    const handleStyleChange = (property, value) => {
-      console.log(\`Updating styles for element \${elementId}: \${property} = \${value}\`);
-      const newStyles = { ...styles, [property]: value };
-      setStyles(newStyles);
-      updateElement(elementId, { styles: newStyles, content });
-    };
-
-    const handleContentChange = (e) => {
-      const newContent = e.target.innerText;
-      console.log(\`Updating content for element \${elementId}: \${newContent}\`);
-      setContent(newContent);
-      updateElement(elementId, { styles, content: newContent });
-    };
-
-    if (!editMode) {
-      return <WrappedComponent {...props} style={styles}>{content || props.children}</WrappedComponent>;
-    }
-
+  // Style editor component
+  const StyleEditor = ({ styles, onStyleChange, onClose, elementType }) => {
+    console.log(\`Rendering StyleEditor for \${elementType}\`, styles);
     return (
-      <div className="relative group">
-        <WrappedComponent
-          {...props}
-          style={styles}
-          contentEditable={typeof props.children === 'string'}
-          onInput={handleContentChange} // Use onInput for live updates
-          suppressContentEditableWarning={true}
-        >
-          {content || props.children}
-        </WrappedComponent>
+      <div className="fixed top-40 right-0 bg-white p-4 shadow-lg rounded-lg border w-72 z-50">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold">Edit {elementType}</h3>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        <button
-          className="absolute flex items-center justify-center top-0 right-0 bg-blue-500 text-white p-1 rounded-bl z-50 opacity-0 group-hover:opacity-100"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering other handlers
-            console.log(\`Opening style editor for element \${elementId}\`);
-            setShowEditor(true);
-          }}
-          aria-label="Edit Styles"
-        >
-          <Settings size={16} />
-        </button>
-
-        {showEditor && (
-          <StyleEditor
-            styles={styles}
-            onStyleChange={handleStyleChange}
-            onClose={() => {
-              console.log(\`Closing style editor for element \${elementId}\`);
-              setShowEditor(false);
-            }}
-            elementType={WrappedComponent.displayName || 'Element'}
-          />
-        )}
+        <div className="space-y-4">
+          {[
+            { label: 'Background Color', type: 'color', property: 'backgroundColor', default: '#ffffff' },
+            { label: 'Text Color', type: 'color', property: 'color', default: '#000000' },
+            { label: 'Font Size (px)', type: 'number', property: 'fontSize', default: '16px' },
+            { label: 'Padding (px)', type: 'number', property: 'padding', default: '0px' },
+            { label: 'Margin (px)', type: 'number', property: 'margin', default: '0px' },
+            { label: 'Border Radius (px)', type: 'number', property: 'borderRadius', default: '0px' },
+          ].map(({ label, type, property, default: defaultValue }) => (
+            <div key={property}>
+              <label className="block text-sm mb-1">{label}</label>
+              <input
+                type={type}
+                value={type === 'color' ? styles[property] || defaultValue : parseInt(styles[property] || defaultValue)}
+                onChange={(e) => {
+                  console.log(\`Style change: \${property} = \${e.target.value}\`);
+                  onStyleChange(property, type === 'color' ? e.target.value : \`\${e.target.value}px\`);
+                }}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
-};
 
-// Edit mode provider
-export const EditModeProvider = ({ children }) => {
-  const [editMode, setEditMode] = useState(false);
-  const [elements, setElements] = useState({});
+  // Higher-Order Component for making elements editable
+  const makeEditable = (WrappedComponent) => {
+    return function EditableComponent(props) {
+      const { editMode, registerElement, updateElement } = useContext(EditModeContext);
+      const [showEditor, setShowEditor] = useState(false);
+      const elementId = props.id;
+      const [styles, setStyles] = useState(props.style || {});
+      const [content, setContent] = useState(props.children || '');
 
-  const registerElement = (id, data) => {
-    console.log(\`Registering new element: \${id}\`, data);
-    setElements((prev) => ({ ...prev, [id]: data }));
-  };
+      useEffect(() => {
+        if (editMode) {
+          console.log(\`Registering element \${elementId}\`, { styles, content });
+          registerElement(elementId, { styles, content });
+        }
+      }, [editMode]);
 
-  const updateElement = (id, data) => {
-    console.log(\`Updating element \${id}\`, data);
-    setElements((prev) => ({ ...prev, [id]: data }));
-  };
-
-  //////////////////////////////////////////
-  //Functions to convert the "elements" object to a JSON string
-  //////////////////////////////////////////
-
-  const extractText = (content) => {
-    if (typeof content === "string") {
-      return content; // Return plain text as is
-    }
-  
-    if (Array.isArray(content)) {
-      return content.map(extractText).join(" "); // Extract text recursively from arrays
-    }
-  
-    if (typeof content === "object" && content !== null) {
-      if (content.props?.children) {
-        return extractText(content.props.children); // Extract text from React children
-      }
-    }
-  
-    return ""; // Default to empty string if no valid text found
-  };
-  
-  const removeCircularReferences = (obj, seen = new WeakSet()) => {
-    if (obj === null || typeof obj !== "object") {
-      return obj; // Return primitives as is
-    }
-  
-    if (seen.has(obj)) {
-      return undefined; // Circular reference detected, remove it
-    }
-  
-    seen.add(obj);
-  
-    if (Array.isArray(obj)) {
-      return obj.map((item) => removeCircularReferences(item, seen));
-    }
-  
-    const newObj = {};
-    for (const key in obj) {
-      if (["return", "_owner", "stateNode"].includes(key)) {
-        continue; // Skip React circular references
-      }
-      newObj[key] = removeCircularReferences(obj[key], seen);
-    }
-  
-    return newObj;
-  };
-  
-  const transformElements = (elements) => {
-    if (typeof elements !== "object" || elements === null) {
-      console.error("Expected elements to be an object, received:", elements);
-      return {};
-    }
-  
-    return Object.entries(elements).reduce((acc, [key, element]) => {
-      acc[key] = {
-        id: key, // ✅ Add unique ID field
-        styles: removeCircularReferences(element.styles || {}), // Clean styles
+      const handleStyleChange = (property, value) => {
+        console.log(\`Updating styles for element \${elementId}: \${property} = \${value}\`);
+        const newStyles = { ...styles, [property]: value };
+        setStyles(newStyles);
+        updateElement(elementId, { styles: newStyles, content });
       };
-  
-      // ✅ Include content only if it exists
-      const extractedContent = extractText(removeCircularReferences(element.content));
-      if (extractedContent) {
-        acc[key].content = extractedContent;
+
+      const handleContentChange = (e) => {
+        const newContent = e.target.innerText;
+        console.log(\`Updating content for element \${elementId}: \${newContent}\`);
+        setContent(newContent);
+        updateElement(elementId, { styles, content: newContent });
+      };
+
+      if (!editMode) {
+        return <WrappedComponent {...props} style={styles}>{content || props.children}</WrappedComponent>;
       }
-  
-      return acc;
-    }, {});
-  };
 
-  //////////////////////////////////////////
-  //////////////////////////////////////////
+      return (
+        <div className="relative group">
+          <WrappedComponent
+            {...props}
+            style={styles}
+            contentEditable={typeof props.children === 'string'}
+            onInput={handleContentChange} // Use onInput for live updates
+            suppressContentEditableWarning={true}
+          >
+            {content || props.children}
+          </WrappedComponent>
 
-  const saveStyleChangesToDB = async (transformedJson) => {
-    const projectId = PROJECTID; // Replace with dynamic ID if needed
-    const apiUrl = \`\${BACKEND_URL}/project/save-style?projectId=\${projectId}\`;
-  
-    console.log("Sending styleChanges to DB:", transformedJson);
-  
-     try {
-      const response = await axios.put(apiUrl, { styleChanges: transformedJson }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    
-      console.log("Database response:", response.data);
-    } catch (error) {
-      console.error("Error saving style changes:", error.response ? error.response.data : error.message);
-    }
+          <button
+            className="absolute flex items-center justify-center top-0 right-0 bg-blue-500 text-white p-1 rounded-bl z-50 opacity-0 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering other handlers
+              console.log(\`Opening style editor for element \${elementId}\`);
+              setShowEditor(true);
+            }}
+            aria-label="Edit Styles"
+          >
+            <Settings size={16} />
+          </button>
 
-  };
-  
-
-  const handleSave = async () => {
-    console.log("Saving changes...");
-
-    // Convert elements to cleaned JSON format
-    let transformedJson = transformElements(elements);
-    transformedJson = JSON.stringify(transformedJson, null, 2);
-
-    console.log("Transformed JSON:", transformedJson);
-
-    try {
-      await saveStyleChangesToDB(transformedJson);
-      console.log("Style changes successfully saved to the database.");
-    } catch (error) {
-      console.error("Error saving style changes:", error);
-    }
-
-  };
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  return (
-    <EditModeContext.Provider value={{ editMode, registerElement, updateElement }}>
-      <div className="min-h-screen">
-        <div className="fixed top-0 left-0 right-0 bg-white border-b px-4 py-2 flex justify-between items-center z-40">
-          <div className="flex items-center gap-4">
-            <h1 className="font-bold">Page Editor</h1>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={editMode}
-                onChange={(e) => {
-                  console.log(\`Edit mode toggled: \${e.target.checked}\`);
-                  setEditMode(e.target.checked);
-                }}
-                className="w-4 h-4"
-              />
-              Edit Mode
-            </label>
-          </div>
-          {/* Save Button */}
-          {editMode && (
-            <button
-              onClick={handleSave}
-              className="bg-blue-500 text-white px-4 py-2  rounded shadow hover:bg-blue-600"
-            >
-              Save
-            </button>
+          {showEditor && (
+            <StyleEditor
+              styles={styles}
+              onStyleChange={handleStyleChange}
+              onClose={() => {
+                console.log(\`Closing style editor for element \${elementId}\`);
+                setShowEditor(false);
+              }}
+              elementType={WrappedComponent.displayName || 'Element'}
+            />
           )}
-
         </div>
+      );
+    };
+  };
 
-        <div className={editMode ? 'pt-16' : ''}>{children}</div>
-      </div>
-    </EditModeContext.Provider>
-  );
-};
+  // Edit mode provider
+  export const EditModeProvider = ({ children }) => {
+    const [editMode, setEditMode] = useState(false);
+    const [elements, setElements] = useState({});
 
-// Export editable components
-export const Editable = {
-  div: makeEditable('div'),
-  p: makeEditable('p'),
-  h1: makeEditable('h1'),
-  nav: makeEditable('nav'),
-  ul: makeEditable('ul'),
-  li: makeEditable('li'),
-  a: makeEditable('a'),
-  main: makeEditable('main'),
-  input: makeEditable('input'),
-};
+    const registerElement = (id, data) => {
+      console.log(\`Registering new element: \${id}\`, data);
+      setElements((prev) => ({ ...prev, [id]: data }));
+    };
 
+    const updateElement = (id, data) => {
+      console.log(\`Updating element \${id}\`, data);
+      setElements((prev) => ({ ...prev, [id]: data }));
+    };
 
-        
-        `
-        
+    //////////////////////////////////////////
+    //Functions to convert the "elements" object to a JSON string
+    //////////////////////////////////////////
+
+    const extractText = (content) => {
+      if (typeof content === "string") {
+        return content; // Return plain text as is
+      }
+
+      if (Array.isArray(content)) {
+        return content.map(extractText).join(" "); // Extract text recursively from arrays
+      }
+
+      if (typeof content === "object" && content !== null) {
+        if (content.props?.children) {
+          return extractText(content.props.children); // Extract text from React children
+        }
+      }
+
+      return ""; // Default to empty string if no valid text found
+    };
+
+    const removeCircularReferences = (obj, seen = new WeakSet()) => {
+      if (obj === null || typeof obj !== "object") {
+        return obj; // Return primitives as is
+      }
+
+      if (seen.has(obj)) {
+        return undefined; // Circular reference detected, remove it
+      }
+
+      seen.add(obj);
+
+      if (Array.isArray(obj)) {
+        return obj.map((item) => removeCircularReferences(item, seen));
+      }
+
+      const newObj = {};
+      for (const key in obj) {
+        if (["return", "_owner", "stateNode"].includes(key)) {
+          continue; // Skip React circular references
+        }
+        newObj[key] = removeCircularReferences(obj[key], seen);
+      }
+
+      return newObj;
+    };
+
+    const transformElements = (elements) => {
+      if (typeof elements !== "object" || elements === null) {
+        console.error("Expected elements to be an object, received:", elements);
+        return {};
+      }
+
+      return Object.entries(elements).reduce((acc, [key, element]) => {
+        acc[key] = {
+          id: key, // ✅ Add unique ID field
+          styles: removeCircularReferences(element.styles || {}), // Clean styles
+        };
+
+        // ✅ Include content only if it exists
+        const extractedContent = extractText(removeCircularReferences(element.content));
+        if (extractedContent) {
+          acc[key].content = extractedContent;
         }
 
-      ]
-    },
+        return acc;
+      }, {});
+    };
+
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+
+    const saveStyleChangesToDB = async (transformedJson) => {
+      const projectId = PROJECTID; // Replace with dynamic ID if needed
+      const apiUrl = \`\${BACKEND_URL}/project/save-style?projectId=\${projectId}\`;
+
+      console.log("Sending styleChanges to DB:", transformedJson);
+
+       try {
+        const response = await axios.put(apiUrl, { styleChanges: transformedJson }, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("Database response:", response.data);
+      } catch (error) {
+        console.error("Error saving style changes:", error.response ? error.response.data : error.message);
+      }
+
+    };
+
+
+    const handleSave = async () => {
+      console.log("Saving changes...");
+
+      // Convert elements to cleaned JSON format
+      let transformedJson = transformElements(elements);
+      transformedJson = JSON.stringify(transformedJson, null, 2);
+
+      console.log("Transformed JSON:", transformedJson);
+
+      try {
+        await saveStyleChangesToDB(transformedJson);
+        console.log("Style changes successfully saved to the database.");
+      } catch (error) {
+        console.error("Error saving style changes:", error);
+      }
+
+    };
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    return (
+      <EditModeContext.Provider value={{ editMode, registerElement, updateElement }}>
+        <div className="min-h-screen">
+          <div className="fixed top-0 left-0 right-0 bg-white border-b px-4 py-2 flex justify-between items-center z-40">
+            <div className="flex items-center gap-4">
+              <h1 className="font-bold">Page Editor</h1>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editMode}
+                  onChange={(e) => {
+                    console.log(\`Edit mode toggled: \${e.target.checked}\`);
+                    setEditMode(e.target.checked);
+                  }}
+                  className="w-4 h-4"
+                />
+                Edit Mode
+              </label>
+            </div>
+            {/* Save Button */}
+            {editMode && (
+              <button
+                onClick={handleSave}
+                className="bg-blue-500 text-white px-4 py-2  rounded shadow hover:bg-blue-600"
+              >
+                Save
+              </button>
+            )}
+
+          </div>
+
+          <div className={editMode ? 'pt-16' : ''}>{children}</div>
+        </div>
+      </EditModeContext.Provider>
+    );
+  };
+
+  // Export editable components
+  export const Editable = {
+    div: makeEditable('div'),
+    p: makeEditable('p'),
+    h1: makeEditable('h1'),
+    nav: makeEditable('nav'),
+    ul: makeEditable('ul'),
+    li: makeEditable('li'),
+    a: makeEditable('a'),
+    main: makeEditable('main'),
+    input: makeEditable('input'),
+  };
 
 
 
-    {
-      name: 'public',
-      type: 'folder',
-      path: '/public',
-      children: [
-        {
-          name: 'index.html',
+
+      
+              `
+        },{
+          name: 'App.js',
           type: 'file',
-          path: '/public/index.html',
-          content: `
-        <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>React App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
-
-        `
+          path: '/src/App.js',
+          content: "/* eslint-disable react/jsx-pascal-case */\nimport { useState } from 'react';\nimport './App.css';\n\nfunction App() {\n  const [todos, setTodos] = useState([]);\n  const [newTodo, setNewTodo] = useState('');\n\n  const addTodo = () => {\n    if (newTodo.trim() !== '') {\n      setTodos([...todos, { text: newTodo, completed: false }]);\n      setNewTodo('');\n    }\n  };\n\n  const toggleComplete = (index) => {\n    const updatedTodos = [...todos];\n    updatedTodos[index].completed = !updatedTodos[index].completed;\n    setTodos(updatedTodos);\n  };\n\n  const removeTodo = (index) => {\n    const updatedTodos = todos.filter((_, i) => i !== index);\n    setTodos(updatedTodos);\n  };\n\n  return (\n    <div className=\"container mx-auto p-4\">\n      <h1 className=\"text-3xl font-bold mb-4\">To-Do List</h1>\n      <div className=\"mb-4\">\n        <input\n          type=\"text\"\n          value={newTodo}\n          onChange={(e) => setNewTodo(e.target.value)}\n          placeholder=\"Add a new to-do\"\n          className=\"border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500\"\n        />\n        <button onClick={addTodo} className=\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2\">\n          Add\n        </button>\n      </div>\n      <ul>\n        {todos.map((todo, index) => (\n          <li key={index} className=\"flex items-center mb-2\">\n            <input\n              type=\"checkbox\"\n              checked={todo.completed}\n              onChange={() => toggleComplete(index)}\n              className=\"mr-2\"\n            />\n            <span className={todo.completed ? 'line-through text-gray-500' : ''}>\n              {todo.text}\n            </span>\n            <button onClick={() => removeTodo(index)} className=\"bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded ml-2\">\n              X\n            </button>\n          </li>\n        ))}\n      </ul>\n      <img src=\"https://images.unsplash.com/photo-1516973377280-a5e5d0497b3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dG9kb3xlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60\" alt=\"Todo Image\" className=\"mt-8 w-full\" />\n    </div>\n  );\n}\n\nexport default App;\n"
         }
 
       ]
-    },
-
-    {
-      name: 'package.json',
-      type: 'file',
-      path: '/package.json',
-      content: `
-  {
-  "name": "my-react-page",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "axios": "^1.7.9",
-    "@radix-ui/react-dialog": "^1.1.4",
-    "@radix-ui/react-label": "^2.1.1",
-    "@radix-ui/react-slot": "^1.1.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cra-template": "1.2.0",
-    "lucide-react": "^0.473.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-scripts": "5.0.1",
-    "tailwind": "^4.0.0",
-    "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.0.5"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.1",
-    "tailwindcss": "^3.4.17"
-  }
-}
-
-    `
-    },
-    {
-      name: 'tailwind.config.js',
-      type: 'file',
-      path: '/tailwind.config.js',
-      content: `
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-    `
     }
-    ,
-    {
-      name: 'postcss.config.js',
-      type: 'file',
-      path: '/postcss.config.js',
-      content: `
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-    `
-    }
+  ])
 
-  ]);
+  //   const [files, setFiles] = useState<FileItem[]>([
+  //     {
+  //       name: 'src',
+  //       type: 'folder',
+  //       path: '/src',
+  //       children: [
+  //         {
+  //           name: 'App.js',
+  //           type: 'file',
+  //           path: '/src/App.js',
+  //           content: `
+  //         import { EditModeProvider, Editable } from './editableComponents.js';
 
-  // const [files, setFiles] = useState<FileItem[]>([]);
+  // /* eslint-disable react/jsx-pascal-case */
+  // import './App.css';
+
+  // function App() {
+  //   return (
+  //     <EditModeProvider>
+  //       <Editable.div id="20a9f5a2-d1f0-4081-9aa6-aacf65d51c7f" className="App">
+  //         {/* Navbar */}
+  //         <Editable.nav id="dfabd52b-4f14-4e61-9e09-ae91557bbd18" className="Navbar">
+  //           <Editable.ul id="cff1b5e1-b8e1-4c8a-9887-17149a403219">
+  //             <Editable.li id="d0e0cb90-887d-4a1e-876b-be2f785eeb81"><Editable.a id="ec30a6b1-11e7-4101-a227-6e73c2a2f78d" href="#home">Home</Editable.a></Editable.li>
+  //             <Editable.li id="9e010275-479a-444c-9e8d-cffdc3f4b367"><Editable.a id="2a09ef1c-b5d6-4438-a1eb-4df48fbca6ad" href="#about">About</Editable.a></Editable.li>
+  //             <Editable.li id="c3aeafa6-0f55-4bed-b85f-11d64be41b7b"><Editable.a id="22c7c6ab-f988-46f3-93f3-57e42846af6c" href="#contact">Contact</Editable.a></Editable.li>
+  //           </Editable.ul>
+  //         </Editable.nav>
+
+  //         {/* Main Content */}
+  //         <Editable.main id="cde20925-a0d4-4036-9bd6-6d665eb17ba0" className="Main-content">
+  //           <Editable.h1 id="6c4271aa-9beb-40ac-9b87-0d6103e75643">Welcome to My React Page</Editable.h1>
+  //           <Editable.p id="890069d1-a563-49dd-bda0-0b34e1002f69">This is a simple React.js page with a navbar, a text box, and a styled div.</Editable.p>
+
+  //           {/* Text Box */}
+  //           <Editable.input id="95c96d4d-df7e-47a3-886f-37a4ccdae0d2"
+  //             className="TextBox"
+  //             type="text"
+  //             placeholder="Enter something..."
+  //           />
+
+  //           {/* Styled Div */}
+  //           <Editable.div id="3e41afe6-0a58-42ab-90eb-ad98c29927f6" className="Styled-div">
+  //             <Editable.p id="b90996f2-21ea-4e90-bbac-a3b15c9ff978">This is a div with a background color and some text inside it!</Editable.p>
+  //           </Editable.div>
+  //         </Editable.main>
+  //       </Editable.div>
+  //     </EditModeProvider>
+
+  //   );
+  // }
+
+  // export default App;
+  //         `
+  //         },
+  //         {
+  //           name: 'index.js',
+  //           type: 'file',
+  //           path: '/src/index.js',
+  //           content: `
+
+  // import React from 'react';
+  // import ReactDOM from 'react-dom/client';
+  // import './index.css';
+  // import App from './App';
+
+  // const root = ReactDOM.createRoot(document.getElementById('root'));
+  // root.render(
+  //   <React.StrictMode>
+  //     <App />
+  //   </React.StrictMode>
+  // );
+
+
+
+  //         `
+  //         }
+
+  //         ,
+  //         {
+  //           name: 'App.css',
+  //           type: 'file',
+  //           path: '/src/App.css',
+  //           content: `
+
+  // /* General styling */
+  // body {
+  //   margin: 0;
+  //   font-family: Arial, sans-serif;
+  // }
+
+  // /* Navbar styling */
+  // .Navbar {
+  //   background-color: #333;
+  //   padding: 1rem;
+  // }
+
+  // .Navbar ul {
+  //   list-style: none;
+  //   display: flex;
+  //   justify-content: center;
+  //   gap: 2rem;
+  //   margin: 0;
+  //   padding: 0;
+  // }
+
+  // .Navbar ul li a {
+  //   color: white;
+  //   text-decoration: none;
+  //   font-size: 1.2rem;
+  // }
+
+  // .Navbar ul li a:hover {
+  //   text-decoration: underline;
+  // }
+
+  // /* Main content styling */
+  // .Main-content {
+  //   text-align: center;
+  //   margin: 2rem;
+  // }
+
+  // .Main-content h1 {
+  //   font-size: 2rem;
+  //   color: #333;
+  // }
+
+  // .Main-content p {
+  //   font-size: 1.2rem;
+  //   color: #555;
+  // }
+
+  // /* Textbox styling */
+  // .TextBox {
+  //   margin-top: 1rem;
+  //   padding: 0.5rem;
+  //   width: 50%;
+  //   font-size: 1rem;
+  //   border: 1px solid #ccc;
+  //   border-radius: 5px;
+  // }
+
+  // .TextBox:focus {
+  //   outline: none;
+  //   border-color: #333;
+  // }
+
+  // /* Styled div */
+  // .Styled-div {
+  //   margin-top: 2rem;
+  //   padding: 1.5rem;
+  //   background-color: #f0f8ff; /* Light blue background */
+  //   border: 2px solid #007acc; /* Blue border */
+  //   border-radius: 10px;
+  //   width: 60%;
+  //   margin-left: auto;
+  //   margin-right: auto;
+  //   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  // }
+
+  // .Styled-div p {
+  //   margin: 0;
+  //   font-size: 1.2rem;
+  //   color: #333;
+  //   text-align: center;
+  // }
+
+
+
+
+  //         `
+  //         },
+  //         {
+  //           name: 'index.css',
+  //           type: 'file',
+  //           path: '/src/index.css',
+  //           content: `
+
+  // @tailwind base;
+  // @tailwind components;
+  // @tailwind utilities;
+
+
+  //         `
+  //         },
+  //         {
+  //           name: 'config.js',
+  //           type: 'file',
+  //           path: '/src/config.js',
+  //           content: `
+
+  // export const PROJECTID = "679a26655a84fc483c15b205";
+  // export const BACKEND_URL = "https://509d-14-139-196-209.ngrok-free.app/api/v1";
+
+
+
+  //         `
+  //         }
+  //         ,
+  //         {
+  //           name: 'editableComponents.js',
+  //           type: 'file',
+  //           path: '/src/editableComponents.js',
+  //           content: `
+  // import React, { createContext, useContext, useState, useEffect } from 'react';
+  // import { Settings, X } from 'lucide-react';
+  // import { PROJECTID, BACKEND_URL }from './config';
+  // import axios from 'axios';
+
+  // // Create context for edit mode
+  // const EditModeContext = createContext();
+
+  // // Style editor component
+  // const StyleEditor = ({ styles, onStyleChange, onClose, elementType }) => {
+  //   console.log(\`Rendering StyleEditor for \${elementType}\`, styles);
+  //   return (
+  //     <div className="fixed top-40 right-0 bg-white p-4 shadow-lg rounded-lg border w-72 z-50">
+  //       <div className="flex justify-between items-center mb-4">
+  //         <h3 className="font-bold">Edit {elementType}</h3>
+  //         <button
+  //           onClick={onClose}
+  //           aria-label="Close"
+  //           className="text-gray-500 hover:text-gray-700"
+  //         >
+  //           <X size={20} />
+  //         </button>
+  //       </div>
+
+  //       <div className="space-y-4">
+  //         {[
+  //           { label: 'Background Color', type: 'color', property: 'backgroundColor', default: '#ffffff' },
+  //           { label: 'Text Color', type: 'color', property: 'color', default: '#000000' },
+  //           { label: 'Font Size (px)', type: 'number', property: 'fontSize', default: '16px' },
+  //           { label: 'Padding (px)', type: 'number', property: 'padding', default: '0px' },
+  //           { label: 'Margin (px)', type: 'number', property: 'margin', default: '0px' },
+  //           { label: 'Border Radius (px)', type: 'number', property: 'borderRadius', default: '0px' },
+  //         ].map(({ label, type, property, default: defaultValue }) => (
+  //           <div key={property}>
+  //             <label className="block text-sm mb-1">{label}</label>
+  //             <input
+  //               type={type}
+  //               value={type === 'color' ? styles[property] || defaultValue : parseInt(styles[property] || defaultValue)}
+  //               onChange={(e) => {
+  //                 console.log(\`Style change: \${property} = \${e.target.value}\`);
+  //                 onStyleChange(property, type === 'color' ? e.target.value : \`\${e.target.value}px\`);
+  //               }}
+  //               className="w-full p-2 border rounded"
+  //             />
+  //           </div>
+  //         ))}
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
+  // // Higher-Order Component for making elements editable
+  // const makeEditable = (WrappedComponent) => {
+  //   return function EditableComponent(props) {
+  //     const { editMode, registerElement, updateElement } = useContext(EditModeContext);
+  //     const [showEditor, setShowEditor] = useState(false);
+  //     const elementId = props.id;
+  //     const [styles, setStyles] = useState(props.style || {});
+  //     const [content, setContent] = useState(props.children || '');
+
+  //     useEffect(() => {
+  //       if (editMode) {
+  //         console.log(\`Registering element \${elementId}\`, { styles, content });
+  //         registerElement(elementId, { styles, content });
+  //       }
+  //     }, [editMode]);
+
+  //     const handleStyleChange = (property, value) => {
+  //       console.log(\`Updating styles for element \${elementId}: \${property} = \${value}\`);
+  //       const newStyles = { ...styles, [property]: value };
+  //       setStyles(newStyles);
+  //       updateElement(elementId, { styles: newStyles, content });
+  //     };
+
+  //     const handleContentChange = (e) => {
+  //       const newContent = e.target.innerText;
+  //       console.log(\`Updating content for element \${elementId}: \${newContent}\`);
+  //       setContent(newContent);
+  //       updateElement(elementId, { styles, content: newContent });
+  //     };
+
+  //     if (!editMode) {
+  //       return <WrappedComponent {...props} style={styles}>{content || props.children}</WrappedComponent>;
+  //     }
+
+  //     return (
+  //       <div className="relative group">
+  //         <WrappedComponent
+  //           {...props}
+  //           style={styles}
+  //           contentEditable={typeof props.children === 'string'}
+  //           onInput={handleContentChange} // Use onInput for live updates
+  //           suppressContentEditableWarning={true}
+  //         >
+  //           {content || props.children}
+  //         </WrappedComponent>
+
+  //         <button
+  //           className="absolute flex items-center justify-center top-0 right-0 bg-blue-500 text-white p-1 rounded-bl z-50 opacity-0 group-hover:opacity-100"
+  //           onClick={(e) => {
+  //             e.stopPropagation(); // Prevent triggering other handlers
+  //             console.log(\`Opening style editor for element \${elementId}\`);
+  //             setShowEditor(true);
+  //           }}
+  //           aria-label="Edit Styles"
+  //         >
+  //           <Settings size={16} />
+  //         </button>
+
+  //         {showEditor && (
+  //           <StyleEditor
+  //             styles={styles}
+  //             onStyleChange={handleStyleChange}
+  //             onClose={() => {
+  //               console.log(\`Closing style editor for element \${elementId}\`);
+  //               setShowEditor(false);
+  //             }}
+  //             elementType={WrappedComponent.displayName || 'Element'}
+  //           />
+  //         )}
+  //       </div>
+  //     );
+  //   };
+  // };
+
+  // // Edit mode provider
+  // export const EditModeProvider = ({ children }) => {
+  //   const [editMode, setEditMode] = useState(false);
+  //   const [elements, setElements] = useState({});
+
+  //   const registerElement = (id, data) => {
+  //     console.log(\`Registering new element: \${id}\`, data);
+  //     setElements((prev) => ({ ...prev, [id]: data }));
+  //   };
+
+  //   const updateElement = (id, data) => {
+  //     console.log(\`Updating element \${id}\`, data);
+  //     setElements((prev) => ({ ...prev, [id]: data }));
+  //   };
+
+  //   //////////////////////////////////////////
+  //   //Functions to convert the "elements" object to a JSON string
+  //   //////////////////////////////////////////
+
+  //   const extractText = (content) => {
+  //     if (typeof content === "string") {
+  //       return content; // Return plain text as is
+  //     }
+
+  //     if (Array.isArray(content)) {
+  //       return content.map(extractText).join(" "); // Extract text recursively from arrays
+  //     }
+
+  //     if (typeof content === "object" && content !== null) {
+  //       if (content.props?.children) {
+  //         return extractText(content.props.children); // Extract text from React children
+  //       }
+  //     }
+
+  //     return ""; // Default to empty string if no valid text found
+  //   };
+
+  //   const removeCircularReferences = (obj, seen = new WeakSet()) => {
+  //     if (obj === null || typeof obj !== "object") {
+  //       return obj; // Return primitives as is
+  //     }
+
+  //     if (seen.has(obj)) {
+  //       return undefined; // Circular reference detected, remove it
+  //     }
+
+  //     seen.add(obj);
+
+  //     if (Array.isArray(obj)) {
+  //       return obj.map((item) => removeCircularReferences(item, seen));
+  //     }
+
+  //     const newObj = {};
+  //     for (const key in obj) {
+  //       if (["return", "_owner", "stateNode"].includes(key)) {
+  //         continue; // Skip React circular references
+  //       }
+  //       newObj[key] = removeCircularReferences(obj[key], seen);
+  //     }
+
+  //     return newObj;
+  //   };
+
+  //   const transformElements = (elements) => {
+  //     if (typeof elements !== "object" || elements === null) {
+  //       console.error("Expected elements to be an object, received:", elements);
+  //       return {};
+  //     }
+
+  //     return Object.entries(elements).reduce((acc, [key, element]) => {
+  //       acc[key] = {
+  //         id: key, // ✅ Add unique ID field
+  //         styles: removeCircularReferences(element.styles || {}), // Clean styles
+  //       };
+
+  //       // ✅ Include content only if it exists
+  //       const extractedContent = extractText(removeCircularReferences(element.content));
+  //       if (extractedContent) {
+  //         acc[key].content = extractedContent;
+  //       }
+
+  //       return acc;
+  //     }, {});
+  //   };
+
+  //   //////////////////////////////////////////
+  //   //////////////////////////////////////////
+
+  //   const saveStyleChangesToDB = async (transformedJson) => {
+  //     const projectId = PROJECTID; // Replace with dynamic ID if needed
+  //     const apiUrl = \`\${BACKEND_URL}/project/save-style?projectId=\${projectId}\`;
+
+  //     console.log("Sending styleChanges to DB:", transformedJson);
+
+  //      try {
+  //       const response = await axios.put(apiUrl, { styleChanges: transformedJson }, {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       });
+
+  //       console.log("Database response:", response.data);
+  //     } catch (error) {
+  //       console.error("Error saving style changes:", error.response ? error.response.data : error.message);
+  //     }
+
+  //   };
+
+
+  //   const handleSave = async () => {
+  //     console.log("Saving changes...");
+
+  //     // Convert elements to cleaned JSON format
+  //     let transformedJson = transformElements(elements);
+  //     transformedJson = JSON.stringify(transformedJson, null, 2);
+
+  //     console.log("Transformed JSON:", transformedJson);
+
+  //     try {
+  //       await saveStyleChangesToDB(transformedJson);
+  //       console.log("Style changes successfully saved to the database.");
+  //     } catch (error) {
+  //       console.error("Error saving style changes:", error);
+  //     }
+
+  //   };
+  //   const [isProcessing, setIsProcessing] = useState(false);
+
+  //   return (
+  //     <EditModeContext.Provider value={{ editMode, registerElement, updateElement }}>
+  //       <div className="min-h-screen">
+  //         <div className="fixed top-0 left-0 right-0 bg-white border-b px-4 py-2 flex justify-between items-center z-40">
+  //           <div className="flex items-center gap-4">
+  //             <h1 className="font-bold">Page Editor</h1>
+  //             <label className="flex items-center gap-2">
+  //               <input
+  //                 type="checkbox"
+  //                 checked={editMode}
+  //                 onChange={(e) => {
+  //                   console.log(\`Edit mode toggled: \${e.target.checked}\`);
+  //                   setEditMode(e.target.checked);
+  //                 }}
+  //                 className="w-4 h-4"
+  //               />
+  //               Edit Mode
+  //             </label>
+  //           </div>
+  //           {/* Save Button */}
+  //           {editMode && (
+  //             <button
+  //               onClick={handleSave}
+  //               className="bg-blue-500 text-white px-4 py-2  rounded shadow hover:bg-blue-600"
+  //             >
+  //               Save
+  //             </button>
+  //           )}
+
+  //         </div>
+
+  //         <div className={editMode ? 'pt-16' : ''}>{children}</div>
+  //       </div>
+  //     </EditModeContext.Provider>
+  //   );
+  // };
+
+  // // Export editable components
+  // export const Editable = {
+  //   div: makeEditable('div'),
+  //   p: makeEditable('p'),
+  //   h1: makeEditable('h1'),
+  //   nav: makeEditable('nav'),
+  //   ul: makeEditable('ul'),
+  //   li: makeEditable('li'),
+  //   a: makeEditable('a'),
+  //   main: makeEditable('main'),
+  //   input: makeEditable('input'),
+  // };
+
+
+
+  //         `
+
+  //         }
+
+  //       ]
+  //     },
+
+
+
+  //     {
+  //       name: 'public',
+  //       type: 'folder',
+  //       path: '/public',
+  //       children: [
+  //         {
+  //           name: 'index.html',
+  //           type: 'file',
+  //           path: '/public/index.html',
+  //           content: `
+  //         <!DOCTYPE html>
+  // <html lang="en">
+  //   <head>
+  //     <title>React App</title>
+  //   </head>
+  //   <body>
+  //     <div id="root"></div>
+  //   </body>
+  // </html>
+
+  //         `
+  //         }
+
+  //       ]
+  //     },
+
+  //     {
+  //       name: 'package.json',
+  //       type: 'file',
+  //       path: '/package.json',
+  //       content: `
+  //   {
+  //   "name": "my-react-page",
+  //   "version": "0.1.0",
+  //   "private": true,
+  //   "dependencies": {
+  //     "axios": "^1.7.9",
+  //     "@radix-ui/react-dialog": "^1.1.4",
+  //     "@radix-ui/react-label": "^2.1.1",
+  //     "@radix-ui/react-slot": "^1.1.1",
+  //     "class-variance-authority": "^0.7.1",
+  //     "clsx": "^2.1.1",
+  //     "cra-template": "1.2.0",
+  //     "lucide-react": "^0.473.0",
+  //     "react": "^19.0.0",
+  //     "react-dom": "^19.0.0",
+  //     "react-scripts": "5.0.1",
+  //     "tailwind": "^4.0.0",
+  //     "tailwindcss-animate": "^1.0.7",
+  //     "uuid": "^11.0.5"
+  //   },
+  //   "scripts": {
+  //     "start": "react-scripts start",
+  //     "build": "react-scripts build",
+  //     "test": "react-scripts test",
+  //     "eject": "react-scripts eject"
+  //   },
+  //   "eslintConfig": {
+  //     "extends": [
+  //       "react-app",
+  //       "react-app/jest"
+  //     ]
+  //   },
+  //   "browserslist": {
+  //     "production": [
+  //       ">0.2%",
+  //       "not dead",
+  //       "not op_mini all"
+  //     ],
+  //     "development": [
+  //       "last 1 chrome version",
+  //       "last 1 firefox version",
+  //       "last 1 safari version"
+  //     ]
+  //   },
+  //   "devDependencies": {
+  //     "autoprefixer": "^10.4.20",
+  //     "postcss": "^8.5.1",
+  //     "tailwindcss": "^3.4.17"
+  //   }
+  // }
+
+  //     `
+  //     },
+  //     {
+  //       name: 'tailwind.config.js',
+  //       type: 'file',
+  //       path: '/tailwind.config.js',
+  //       content: `
+  // /** @type {import('tailwindcss').Config} */
+  // module.exports = {
+  //   content: [
+  //     "./src/**/*.{js,jsx,ts,tsx}",
+  //     "./public/index.html"
+  //   ],
+  //   theme: {
+  //     extend: {},
+  //   },
+  //   plugins: [],
+  // }
+  //     `
+  //     }
+  //     ,
+  //     {
+  //       name: 'postcss.config.js',
+  //       type: 'file',
+  //       path: '/postcss.config.js',
+  //       content: `
+  // module.exports = {
+  //   plugins: {
+  //     tailwindcss: {},
+  //     autoprefixer: {},
+  //   },
+  // }
+  //     `
+  //     }
+
+  //   ]);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -979,12 +1327,14 @@ module.exports = {
   /////init function
 
   async function init() {
-    console.log(prompt);
+    console.log("init function called");
+    console.log("prompt is: ", prompt);
+
     const response = await axios.post(`${BACKEND_URL}/template`, {
       prompt: prompt.trim()
     });
     setTemplateSet(true);
-    console.log("response is: ", response.data);
+    console.log("response of /template is : ", response.data);
 
     const { prompts, uiPrompts } = response.data;
 
@@ -1006,17 +1356,24 @@ module.exports = {
       }))
     })
 
+
+    const cleanedResponse = stepsResponse.data.response.replace(/{```javascript}/g, "");
+
+    console.log("steps response is: ", cleanedResponse);
+
     setLoading(false);
 
-    setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
-      ...x,
-      status: "pending" as "pending"
-    }))]);
-    console.log("new stpes", steps);
+    // setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
+    //   ...x,
+    //   status: "pending" as "pending"
+    // }))]);
+    // console.log("new stpes", steps);
+
+    //Add logic for unique Step IDs:
 
     setSteps((prevSteps) => {
       const lastStepId = prevSteps.length > 0 ? Math.max(...prevSteps.map(step => step.id)) : 0;
-      const newSteps = parseXml(stepsResponse.data.response, lastStepId + 1); // Start from last used id + 1
+      const newSteps = parseXml(cleanedResponse, lastStepId + 1);
       return [...prevSteps, ...newSteps.map(x => ({
         ...x,
         status: "pending" as "pending"
@@ -1031,12 +1388,12 @@ module.exports = {
       content
     })));
 
-    setLlmMessages(x => [...x, { role: "assistant", content: stepsResponse.data.response }])
+    setLlmMessages(x => [...x, { role: "assistant", content: cleanedResponse }])
   }
 
-  // useEffect(() => {
-  //   init();
-  // }, [])
+  useEffect(() => {
+    init();
+  }, [])
 
   // Delete all existing files in the backend
   const deleteAllFiles = async (projectId: string): Promise<void> => {
@@ -1131,36 +1488,37 @@ module.exports = {
       console.log('Files to process are :', files);
 
       // Process the files
-      // const processedFiles = await processFiles(files, PROJECTID);
+      const processedFiles = await processFiles(files, PROJECTID);
 
-      // const file = fileInfo.FileData;
-      // console.log('file', file);
+      const file = fileInfo.FileData;
+      console.log('file', file);
 
-      // setFiles((prevFiles) => {
-      //   // Clone the files array to avoid mutating state directly
-      //   let updatedFiles = [...prevFiles];
+      setFiles((prevFiles) => {
+        // Clone the files array to avoid mutating state directly
+        let updatedFiles = [...prevFiles];
 
-      //   // Find the `src` folder
-      //   let srcFolder = updatedFiles.find((folder) => folder.name === "src" && folder.type === "folder");
+        // Find the `src` folder
+        let srcFolder = updatedFiles.find((folder) => folder.name === "src" && folder.type === "folder");
 
-      //   if (srcFolder) {
-      //     // Ensure children exists and is a new reference (for React state updates)
-      //     srcFolder.children = [...(srcFolder.children || []), {
-      //       name: file.name,
-      //       type: file.type,
-      //       children: [], // Ensure children is an array
-      //       content: file.content || "", // Ensure content is a string
-      //       path: file.path,
-      //     }];
-      //   }
+        if (srcFolder) {
+          // Ensure children exists and is a new reference (for React state updates)
+          srcFolder.children = [...(srcFolder.children || []), {
+            name: file.name,
+            type: file.type,
+            children: [], // Ensure children is an array
+            content: file.content || "", // Ensure content is a string
+            path: file.path,
+          }];
+        }
 
-      // return updatedFiles;
-      // });
+        return updatedFiles;
+      }
+      );
 
 
-      // console.log('Processed Files:', processedFiles);
+      console.log('Processed Files:', processedFiles);
 
-      // setFiles(processedFiles);
+      setFiles(processedFiles);
 
     } catch (error) {
       console.error('Error fetching or processing files:', error);

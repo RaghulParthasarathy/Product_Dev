@@ -12,5 +12,8 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin"
     }
-  }
+  },
+  define: {
+    "process.env": {}, // Prevents Babel from throwing process-related errors
+  },
 });

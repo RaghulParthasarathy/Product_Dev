@@ -1,13 +1,16 @@
 import { MODIFICATIONS_TAG_NAME, WORK_DIR, allowedHTMLElements } from './constants.js';
 
 export const BASE_PROMPT = `
-For all designs I ask you to make, have them be beautiful, not cookie-cutter. Make webpages that are fully featured and worthy for production.
+For all webpage designs, ensure they are visually stunning, unique, and fully production-ready—no generic or cookie-cutter layouts.
 
-By default, this template supports .js syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc., unless absolutely necessary or I request them.
+This project follows a React-based structure with App.js and index.js. Use App.css for styling by default, and apply Tailwind CSS only when necessary.
 
-Use icons from Lucide React for logos.
+By default, use .js syntax, React Hooks, and Lucide React for icons. Do not install additional UI libraries, icon packs, or themes unless explicitly requested.
 
-Use stock photos from Unsplash where appropriate, only valid URLs you know exist. Do not download the images; only link to them in image tags.
+For imagery, use stock photos from Unsplash and link directly to valid URLs within <img> tags—do not download or embed images.
+
+Maintain high-quality, responsive, and well-structured code, ensuring best practices for performance and accessibility.
+
 `;
 
 export const getSystemPrompt = (cwd = WORK_DIR) => `

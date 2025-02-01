@@ -2,198 +2,160 @@ export const basePrompt = `Here is an artifact that contains all files of the pr
 Consider the contents of ALL files in the project.
 
 <boltArtifact id="project-import" title="Project Files">
+
 <boltAction type="file" filePath="package.json">
 {
-  "name": "my-vite-app",
+  "name": "my-react-page",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint . --ext js,
-    jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
-  },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "axios": "^1.7.9",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cra-template": "1.2.0",
+    "lucide-react": "^0.473.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-scripts": "5.0.1",
+    "tailwind": "^4.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.34.3",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-react-refresh": "^0.4.7",
-    "vite": "^5.3.4"
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
   }
 }
 </boltAction>
 
-<boltAction type="file" filePath="vite.config.js">
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
-</boltAction>
-
-<boltAction type="file" filePath="src/App.css">
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+<boltAction type="file" filePath="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./public/index.html"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
 }
 </boltAction>
 
-<boltAction type="file" filePath="src/App.jsx">
-import { useState } from 'react'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-    </>
-  )
+<boltAction type="file" filePath="postcss.config.js">
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
 }
+</boltAction>
 
-export default App
+<boltAction type="file" filePath="public/index.html">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+</boltAction>
+
+<boltAction type="file" filePath="src/index.js">
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
 </boltAction>
 
 <boltAction type="file" filePath="src/index.css">
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</boltAction>
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+<boltAction type="file" filePath="src/App.js">
+/* eslint-disable react/jsx-pascal-case */
+import './App.css';
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+function App() {
+  return (
+    <div>Hello World</div>
+  );
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+export default App;
+</boltAction>
 
+<boltAction type="file" filePath="src/App.css">
+/* General styling */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+  font-family: Arial, sans-serif;
 }
 </boltAction>
 
-<boltAction type="file" filePath="src/main.jsx">
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
-</boltAction>
 </boltArtifact>
-`;
+
+I am **very particular about my project's file structure**. You **must not modify** any files except \`App.js\` and \`App.css\`. All other files should remain exactly as they are.
+
+### Guidelines:
+- Ensure all webpage designs are **visually stunning, unique, and production-ready**—no generic or cookie-cutter layouts.
+- Use **React (.js syntax)**, **Lucide React** for icons, and **React Hooks** where needed.
+- Do **not** install any additional UI libraries, themes, or icon packs unless explicitly requested.
+- Use **stock photos from Unsplash**, linking only valid URLs inside \`<img>\` tags. Do **not** download or embed images.
+- The AI **must adhere strictly** to the provided file structure, making modifications **only** in \`App.js\` and \`App.css\`.
+
+### File Structure (Do Not Alter Except \`App.js\` & \`App.css\`):
+
+\`\`\`
+/src  
+  ├── App.js  (modifiable)  
+  ├── index.js  (do not modify)  
+  ├── App.css  (modifiable)  
+  ├── index.css  (do not modify)  
+/public  
+  ├── index.html  (do not modify)  
+/package.json  (do not modify)  
+/tailwind.config.js  (do not modify)  
+/postcss.config.js  (do not modify)  
+\`\`\`
+
+`

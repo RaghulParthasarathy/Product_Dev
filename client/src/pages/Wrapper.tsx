@@ -2,13 +2,20 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { FileItem } from '../types/index.ts';
 import { BACKEND_URL } from '../config';
+import { parse } from "@babel/parser";
+import traverse from "@babel/traverse";
+import generate from "@babel/generator";
+import * as t from "@babel/types";
 
-// List of HTML elements to convert to Editable components
+// const EDITABLE_ELEMENTS = [
+//   'div', 'nav', 'ul', 'li', 'a', 'main', 'h1', 'p', 'input',
+//   'span', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'footer',
+//   'section', 'article', 'button', 'form', 'label', 'img',
+//   'table', 'tr', 'td', 'th'
+// ];
+
 const EDITABLE_ELEMENTS = [
-  'div', 'nav', 'ul', 'li', 'a', 'main', 'h1', 'p', 'input',
-  'span', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'footer',
-  'section', 'article', 'button', 'form', 'label', 'img',
-  'table', 'tr', 'td', 'th',
+  'div', 'nav', 'ul', 'li', 'a', 'main', 'h1', 'p','h2', 'h3', 'h4', 'h5', 'h6'
 ];
 
 // Check if the content is a React component
@@ -23,43 +30,123 @@ const isReactComponent = (content: string): boolean => {
 };
 
 // Add a unique ID to an element only if it doesn't already have an ID
+// const addUniqueId = (attributes: string | undefined): string => {
+//   if (!attributes || attributes.trim() === "") {
+//     return ` id="${uuidv4()}"`; // ✅ If no attributes exist, return only the id
+//   }
+
+//   // ✅ Check if the `id` attribute exists
+//   const hasId = /\bid=['"][^'"]+['"]/.test(attributes);
+
+//   return hasId ? attributes : `${attributes.trim()} id="${uuidv4()}"`;
+// };
+
 const addUniqueId = (attributes: string | undefined): string => {
   if (!attributes || attributes.trim() === "") {
-    return ` id="${uuidv4()}"`; // ✅ If no attributes exist, return only the id
+    return ` id="${uuidv4()}"`; // ✅ No attributes? Just add an ID.
   }
 
-  // ✅ Check if the `id` attribute exists
+  // ✅ Ensure existing ID is not duplicated
   const hasId = /\bid=['"][^'"]+['"]/.test(attributes);
-
   return hasId ? attributes : `${attributes.trim()} id="${uuidv4()}"`;
 };
 
-// Convert HTML elements to Editable components with unique IDs
-const convertToEditable = (code: string): string => {
-  let result = code;
+// const convertToEditable = (code: string): string => {
+//   let result = code;
 
-  EDITABLE_ELEMENTS.forEach((element) => {
-    const openingRegex = new RegExp(`<(${element})(\\s+[^>]*)?>`, 'g');
-    const closingRegex = new RegExp(`</(${element})>`, 'g');
-    const selfClosingRegex = new RegExp(`<(${element})(\\s+[^>]*)?/\\s*>`, 'g');
+//   EDITABLE_ELEMENTS.forEach((element) => {
+//     // Match opening tags (e.g., <div className="test">)
+//     const openingRegex = new RegExp(`<(${element})(\\s*[^>/]*)?>`, 'g');
+//     // Match closing tags (e.g., </div>)
+//     const closingRegex = new RegExp(`</(${element})>`, 'g');
+//     // Match self-closing elements (e.g., <input />)
+//     const selfClosingRegex = new RegExp(`<(${element})(\\s*[^>]*)?/\\s*>`, 'g');
 
-    result = result.replace(openingRegex, (_, tag, attributes) => {
-      const updatedAttributes = addUniqueId(attributes);
-      return `<Editable.${tag} ${updatedAttributes}>`;
-    });
+//     // ✅ Process normal opening tags
+//     result = result.replace(openingRegex, (_, tag, attributes) => {
+//       const updatedAttributes = addUniqueId(attributes);
+//       return `<Editable.${tag}${updatedAttributes}>`;
+//     });
 
-    result = result.replace(selfClosingRegex, (_, tag, attributes) => {
-      const updatedAttributes = addUniqueId(attributes);
-      return `<Editable.${tag} ${updatedAttributes} />`;
-    });
+//     // ✅ Process self-closing tags correctly
+//     result = result.replace(selfClosingRegex, (_, tag, attributes) => {
+//       const updatedAttributes = addUniqueId(attributes);
+//       return `<Editable.${tag}${updatedAttributes} />`;
+//     });
 
-    result = result.replace(closingRegex, `</Editable.$1>`);
-  });
+//     // ✅ Process closing tags
+//     result = result.replace(closingRegex, `</Editable.$1>`);
+//   });
 
-  return result;
-};
+//   return result;
+// };
+
+
 
 // Format JSX code with proper indentation
+
+
+const convertToEditable = (code: string): string => {
+  console.log("Original Code:", code);
+
+  // ✅ Parse JSX code using Babel
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["jsx"],
+  });
+
+  // ✅ Traverse AST and modify JSX elements
+  traverse(ast, {
+    JSXOpeningElement(path) {
+      const tagName = path.node.name;
+      if (t.isJSXIdentifier(tagName) && EDITABLE_ELEMENTS.includes(tagName.name)) {
+        // ✅ Wrap element with Editable.*
+        path.node.name = t.jsxMemberExpression(
+          t.jsxIdentifier("Editable"),
+          t.jsxIdentifier(tagName.name)
+        );
+
+        // ✅ Check if the element already has an `id` attribute
+        const hasId = path.node.attributes.some(
+          (attr) => t.isJSXAttribute(attr) && attr.name.name === "id"
+        );
+
+        if (!hasId) {
+          path.node.attributes.push(
+            t.jsxAttribute(t.jsxIdentifier("id"), t.stringLiteral(uuidv4()))
+          );
+        }
+      }
+    },
+
+    // ✅ Ensure closing tags are also transformed
+    JSXClosingElement(path) {
+      const tagName = path.node.name;
+      if (t.isJSXIdentifier(tagName) && EDITABLE_ELEMENTS.includes(tagName.name)) {
+        path.node.name = t.jsxMemberExpression(
+          t.jsxIdentifier("Editable"),
+          t.jsxIdentifier(tagName.name)
+        );
+      }
+    },
+
+    // ✅ Preserve parentheses around return JSX
+    ReturnStatement(path) {
+      if (t.isJSXElement(path.node.argument) || t.isJSXFragment(path.node.argument)) {
+        path.node.argument = t.parenthesizedExpression(path.node.argument);
+      }
+    },
+  });
+
+  // ✅ Convert AST back to JSX code
+  const transformedCode = generate(ast, { retainLines: true }).code;
+
+  console.log("Transformed Code:", transformedCode);
+  return transformedCode;
+};
+
+
+
 const formatCode = (code: string): string => {
   let indentLevel = 0;
   const indentSize = 2;
@@ -89,49 +176,93 @@ const addImportStatement = (code: string): string => {
 };
 
 // Wrap JSX content with <EditModeProvider>
+// const wrapWithProvider = (code: string): string => {
+//   let processedCode = convertToEditable(code);
+//   processedCode = addImportStatement(processedCode);
+//   console.log("Processed Code:", processedCode);
+//   const lines = processedCode.split('\n');
+//   const functionStartIndex = lines.findIndex((line) => line.trim().startsWith('function '));
+
+//   if (functionStartIndex === -1) {
+//     console.warn('No function definition found in the code!');
+//     return processedCode;
+//   }
+
+//   const headerLines = lines.slice(0, functionStartIndex);
+//   const functionLines = lines.slice(functionStartIndex).join('\n');
+
+//   const functionMatch = functionLines.match(
+//     /(function\s+\w+\(\)\s*{)([\s\S]*?)(return\s*\()([\s\S]*?)(\s*\);?\s*})/
+//   );
+
+//   if (functionMatch) {
+//     const [_, funcDef, beforeReturn, returnStatement, jsx, closing] = functionMatch;
+
+//     const formattedJsx = formatCode(`
+//       <EditModeProvider>
+//         ${jsx}
+//       </EditModeProvider>
+//     `);
+
+//     const wrappedFunction = `${funcDef}${beforeReturn}
+//   ${returnStatement}
+// ${formattedJsx}
+//   ${closing}`;
+
+//     return [...headerLines, wrappedFunction].join('\n');
+//   } else {
+//     console.warn('Function structure not matched. Returning original function.');
+//     return processedCode;
+//   }
+// };
+
 const wrapWithProvider = (code: string): string => {
   let processedCode = convertToEditable(code);
   processedCode = addImportStatement(processedCode);
+  console.log("Processed Code:", processedCode);
+  console.log("Original Code:", processedCode);
+  code = processedCode;
 
-  const lines = processedCode.split('\n');
-  const functionStartIndex = lines.findIndex((line) => line.trim().startsWith('function '));
+  // ✅ Parse the code into an AST
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["jsx"],
+  });
 
-  if (functionStartIndex === -1) {
-    console.warn('No function definition found in the code!');
-    return processedCode;
-  }
+  // ✅ Traverse the AST and find return statements
+  traverse(ast, {
+    ReturnStatement(path) {
+      if (t.isJSXElement(path.node.argument) || t.isJSXFragment(path.node.argument)) {
+        // ✅ Wrap JSX inside <EditModeProvider>
+        const wrappedJSX = t.jsxElement(
+          t.jsxOpeningElement(t.jsxIdentifier("EditModeProvider"), []),
+          t.jsxClosingElement(t.jsxIdentifier("EditModeProvider")),
+          [path.node.argument] // Keep the original JSX inside
+        );
 
-  const headerLines = lines.slice(0, functionStartIndex);
-  const functionLines = lines.slice(functionStartIndex).join('\n');
+        // ✅ Force parentheses around return statement to prevent syntax errors
+        path.node.argument = t.parenthesizedExpression(wrappedJSX);
+      }
+    },
+  });
 
-  const functionMatch = functionLines.match(
-    /(function\s+\w+\(\)\s*{)([\s\S]*?)(return\s*\()([\s\S]*?)(\s*\);?\s*})/
-  );
+  // ✅ Convert AST back to JSX code
+  const transformedCode = generate(ast, { retainLines: true }).code;
 
-  if (functionMatch) {
-    const [_, funcDef, beforeReturn, returnStatement, jsx, closing] = functionMatch;
-
-    const formattedJsx = formatCode(`
-      <EditModeProvider>
-        ${jsx}
-      </EditModeProvider>
-    `);
-
-    const wrappedFunction = `${funcDef}${beforeReturn}
-  ${returnStatement}
-${formattedJsx}
-  ${closing}`;
-
-    return [...headerLines, wrappedFunction].join('\n');
-  } else {
-    console.warn('Function structure not matched. Returning original function.');
-    return processedCode;
-  }
+  console.log("Transformed Code:", transformedCode);
+  return transformedCode;
 };
 
 // Process a single file or folder
 const processFileContent = (fileItem: FileItem): FileItem => {
+  console.log('Processing file:', fileItem.path);
   if (fileItem.type === 'file' && fileItem.content) {
+      // Skip processing if the file name is 'editableComponents.js'
+    if (fileItem.name === 'editableComponents.js') {
+      console.log(`Skipping processing for ${fileItem.name}`);
+      return fileItem; // Return the file as is, without modifications
+    }
+
     if (
       /\.(jsx|tsx)$/.test(fileItem.name) ||
       (/\.(js|ts)$/.test(fileItem.name) && isReactComponent(fileItem.content))
@@ -176,8 +307,6 @@ const deleteAllFiles = async (projectId: string): Promise<void> => {
     throw error; 
   }
 };
-
-
 
 // Upload all processed files
 const uploadFiles = async (files: FileItem[], projectId: string) => {
@@ -229,6 +358,9 @@ const processFiles = async (files: FileItem[], projectId: string): Promise<FileI
   console.log('Processing complete for project:', projectId);
   return processedFiles;
 };
+
+
+
 
 export {
   processFiles,
