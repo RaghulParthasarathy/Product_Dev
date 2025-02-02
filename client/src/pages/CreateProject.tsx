@@ -4,10 +4,10 @@ import axios from "axios";
 import { BACKEND_URL } from "../config";
 
 const CreateProject: React.FC = () => {
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [prompt, setPrompt] = useState<string>(""); // ✅ Prompt field
-  const [loading, setLoading] = useState<boolean>(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const CreateProject: React.FC = () => {
     try {
       const response = await axios.post(
         `${BACKEND_URL}/project/create-project`,
-        { name, description }, 
+        { name, description },
         { withCredentials: true }
       );
 
@@ -35,63 +35,68 @@ const CreateProject: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold text-gray-800 text-center">Create a New Project</h1>
-
+    <div className="flex items-center justify-center h-screen bg-[#080710] relative overflow-hidden"
+    style={{
+      backgroundImage: "url('/images/bg7.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    }}
+    >
+      {/* <div className="relative w-[430px] h-[520px]"> */}
+        <div className="absolute w-[200px] h-[200px] bg-gradient-to-br from-[#1845ad] to-[#23a2f6] rounded-full top-20 left-88"></div>
+        <div className="absolute w-[200px] h-[200px] bg-gradient-to-r from-[#ff512f] to-[#f09819] rounded-full bottom-20 right-81"></div>
+      {/* </div> */}
+      <form 
+        onSubmit={handleCreateProject} 
+        className="relative z-10 w-[400px] p-10 bg-white/10 backdrop-blur-md border border-white/10 shadow-lg rounded-lg"
+      >
+        <h3 className="text-2xl font-semibold text-white text-center">Create a New Project</h3>
+        
         {error && <p className="text-red-500 text-center mt-2">{error}</p>}
 
-        <form onSubmit={handleCreateProject} className="mt-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold">Project Name</label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded mt-1 focus:ring focus:ring-purple-300"
-              placeholder="Enter project name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
+        <label className="block mt-6 text-white font-medium">Project Name</label>
+        <input
+          type="text"
+          className="w-full mt-2 p-3 bg-white/10 text-white rounded outline-none"
+          placeholder="Enter project name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold">Project Description</label>
-            <textarea
-              className="w-full p-2 border rounded mt-1 focus:ring focus:ring-purple-300"
-              placeholder="Enter project description (optional)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
+        <label className="block mt-6 text-white font-medium">Project Description</label>
+        <textarea
+          className="w-full mt-2 p-3 bg-white/10 text-white rounded outline-none"
+          placeholder="Enter project description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
 
-          {/* ✅ New Prompt Field (Passed to Builder, Not Backend) */}
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold">Prompt</label>
-            <textarea
-              className="w-full p-2 border rounded mt-1 focus:ring focus:ring-purple-300"
-              placeholder="Enter prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              required
-            />
-          </div>
+        <label className="block mt-6 text-white font-medium">Prompt</label>
+        <textarea
+          className="w-full mt-2 p-3 bg-white/10 text-white rounded outline-none"
+          placeholder="Enter prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          required
+        />
 
-          <button
-            type="submit"
-            className="w-full bg-purple-600 text-white py-2 rounded-lg shadow-lg hover:bg-purple-700 transition"
-            disabled={loading}
-          >
-            {loading ? "Creating..." : "Create Project"}
-          </button>
-        </form>
+        <button
+          type="submit"
+          className="w-full mt-6 py-3 bg-white text-[#080710] font-semibold rounded cursor-pointer"
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Create Project"}
+        </button>
 
         <button
           onClick={() => navigate("/profile")}
-          className="mt-4 w-full text-gray-600 underline text-center"
+          className="mt-4 w-full text-white underline text-center"
         >
           Cancel
         </button>
-      </div>
+      </form>
     </div>
   );
 };

@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -10,6 +9,7 @@ export default {
         raleway: ["Raleway", "sans-serif"],
         polySans: ["PolySans Median", "sans-serif"],
         polySans2: ["PolySans Neutral", "sans-serif"],
+        plusJakarta: ["Plus Jakarta Sans", "sans-serif"], // Added this line
       },
     },
   },

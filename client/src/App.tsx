@@ -7,17 +7,17 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import CreateProject from './pages/CreateProject';
 import ProjectDetails from './pages/ProjectDetails';
-import Test from "./test/index";
+import Signup from './pages/Signup';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-      <Route path="/test" element={<Test />} />
         <Route path="/" element={<Home />} />
         <Route path="/builder" element={<Builder />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/Profile" element={<Profile />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/projects/:projectId" element={<ProjectDetails />} />
