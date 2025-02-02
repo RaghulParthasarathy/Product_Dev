@@ -1,1 +1,1 @@
-export const BACKEND_URL = "http://localhost:5001/api/v1"
+export const BACKEND_URL = "https://product-dev-kriti-25.onrender.com/api/v1"

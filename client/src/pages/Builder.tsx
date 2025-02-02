@@ -85,11 +85,7 @@ export function Builder() {
           name: 'config.js',
           type: 'file',
           path: '/src/config.js',
-          content: `
-              export const PROJECTID = "679f67767951d63c554803ff";
-              export const BACKEND_URL = "https://4cb2-14-139-196-165.ngrok-free.app/api/v1";
-      
-              `
+          content: ""
         },
         {
           name: 'editableComponents.js',
@@ -515,7 +511,7 @@ export const Editable = {
                     ...file,
                     content: `
                         export const PROJECTID = "${projectData._id}"; 
-                        export const BACKEND_URL = "https://4cb2-14-139-196-165.ngrok-free.app/api/v1";
+                        export const BACKEND_URL = "https://product-dev-kriti-25.onrender.com/api/v1";
                       `
                   }
                   : file
@@ -779,7 +775,7 @@ export const Editable = {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/project/get-style?projectId=${PROJECTID}`,
+        `https://product-dev-kriti-25.onrender.com/api/v1/project/get-style?projectId=${PROJECTID}`,
         {
           method: "GET",
           headers: {
