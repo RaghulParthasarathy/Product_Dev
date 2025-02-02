@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
-import { User, Plus, Briefcase, Home, Info, Phone, LogOut } from "lucide-react";
+import { User, Plus, Briefcase, Home, Info, Phone, LogOut, Trash2 } from "lucide-react";
 
 function Profile() {
-  const [user, setUser] = useState<{ name: string; avatar?: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; avatar?: string; id: string } | null>(null);
+
   // const [username, setUsername] = useState<string | null>(null);
 
   const [projects, setProjects] = useState<{ _id: string; name: string; description?: string }[]>([]);
@@ -20,7 +21,7 @@ function Profile() {
         });
         // setUsername(response.data.username);
         console.log("User:", response.data);
-        setUser({ name: response.data.username, avatar: "" });
+        setUser({ name: response.data.username, avatar: "" , id: response.data.userId });
 
         const projectResponse = await axios.get(`${BACKEND_URL}/project/get-all-projects/${response.data.userId}`, {
           withCredentials: true,
@@ -38,6 +39,54 @@ function Profile() {
   const handleSignOut = () => {
     window.location.href = "/login";
   };
+
+  
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [deletedProjectName, setDeletedProjectName] = useState('');
+
+  const handleDelete = async (projectId : string, projectName: string) => {
+    try {
+      await deleteProject(projectId);  
+      setDeletedProjectName(projectName);
+      setShowPopup(true);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      // Handle error (e.g., show a toast notification)
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    console.log("Deleting project with ID:", projectId);
+
+    // The payload to send in the body
+    const payload = {
+      projectId,
+      userId : user?.id
+    };
+
+    try {
+      const response = await axios.delete(`${BACKEND_URL}/project/${projectId}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: payload, 
+        withCredentials: true, 
+      });
+      
+      console.log("Project Deleted", response.data);
+      window.alert(`The project has been successfully deleted.`);
+      window.location.reload();
+      return response.data; // Assuming the API responds with a success message
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      throw new Error('Unable to delete project');
+    }
+  }
+
+  // const closePopup = () => {
+  //   setShowPopup(false);
+  // };
 
   return (
     <div className="min-h-screen bg-slate-900"
@@ -94,24 +143,56 @@ function Profile() {
           </button>
         </div>
 
-        {/* Projects Grid */}
-        {projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div key={project._id} className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 p-6 border border-slate-700 hover:border-blue-400 transform hover:-translate-y-1">
-                <h3 className="text-lg font-semibold text-white mb-2">{project.name}</h3>
-                <p className="text-slate-300">{project.description || "No description available."}</p>
-                <div className="mt-4 flex justify-end">
-                  <button onClick={() => navigate(`/projects/${project._id}`)} className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-300 group flex items-center">
-                    View Details <span className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </button>
-                </div>
+        return (
+    <>
+      {/* Projects Grid */}
+      {projects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project) => (
+            <div
+              key={project._id}
+              className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 p-6 border border-slate-700 hover:border-blue-400 transform hover:-translate-y-1"
+            >
+              <h3 className="text-lg font-semibold text-white mb-2">{project.name}</h3>
+              <p className="text-slate-300">{project.description || "No description available."}</p>
+              <div className="mt-4 flex justify-between">
+                <button
+                  onClick={() => navigate(`/projects/${project._id}`)}
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-300 group flex items-center"
+                >
+                  View Details <span className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </button>
+                <button
+                  onClick={() => handleDelete(project._id, project.name)}
+                  className="text-red-500 hover:text-red-400 text-sm font-medium transition-colors duration-300 group flex items-center"
+                >
+                 <Trash2 className="h-5 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-slate-300 text-lg mt-10">No projects found yet. Click on "Create New Project" and start building your own website in seconds!</p>
+      )}
+
+      {/* Popup after delete */}
+      {/* {showPopup && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-semibold">Project Deleted</h3>
+            <p className="mt-2">The project "{deletedProjectName}" has been successfully deleted.</p>
+            <button
+              onClick={closePopup}
+              className="mt-4 text-blue-500 hover:text-blue-400 font-medium"
+            >
+              Close
+            </button>
           </div>
-        ) : (
-          <p className="text-center text-slate-300 text-lg mt-10">No projects found yet. Click on "Create New Project" and start building your own website in seconds!</p>
-        )}
+        </div>
+      )} */}
+    </>
+  );
       </main>
     </div>
   );

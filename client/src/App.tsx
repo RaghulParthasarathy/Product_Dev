@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import CreateProject from './pages/CreateProject';
 import ProjectDetails from './pages/ProjectDetails';
 import Signup from './pages/Signup';
+import Hello from './pages/Hello';
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
         <Route path="/Profile" element={<Profile />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/projects/:projectId" element={<ProjectDetails />} />
+        <Route path="/Hello" element={<Hello />} />
+
       </Routes>
     </BrowserRouter>
   );

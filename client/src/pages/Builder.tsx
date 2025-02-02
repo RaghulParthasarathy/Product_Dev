@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { StepsList } from '../components/StepsList';
 import { FileExplorer } from '../components/FileExplorer';
 import { TabView } from '../components/TabView';
@@ -16,7 +16,8 @@ import { processFiles, processFileContent } from '../pages/Wrapper';
 import { processFilesWithStyles } from "../utils/processFiles";
 import fileInfo from "../utils/editableFileInfo.json";
 import sample from "../utils/test_file.json"
-
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 interface Project {
   id: string;
@@ -50,6 +51,10 @@ export function Builder() {
   }, [projectData]);
   console.log("project data is: ", project);
   const PROJECTID = project.id;
+
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [Message, setMessage] = useState('');
 
   const [userPrompt, setPrompt] = useState(project.prompt);
   const [llmMessages, setLlmMessages] = useState<{ role: "user" | "assistant", content: string; }[]>([]);
@@ -485,9 +490,7 @@ export const Editable = {
     }
   ])
 
- 
 
-  const [isProcessing, setIsProcessing] = useState(false);
 
 
   // Set project data when component mounts
@@ -509,12 +512,12 @@ export const Editable = {
               children: folder.children.map((file) =>
                 file.name === 'config.js'
                   ? {
-                      ...file,
-                      content: `
+                    ...file,
+                    content: `
                         export const PROJECTID = "${projectData._id}"; 
                         export const BACKEND_URL = "https://4cb2-14-139-196-165.ngrok-free.app/api/v1";
                       `
-                    }
+                  }
                   : file
               )
             };
@@ -770,6 +773,8 @@ export const Editable = {
 
 
   const handleClick = async () => {
+    setIsProcessing(true); // Set to true to indicate the process has started
+
     console.log("Fetching style changes...");
 
     try {
@@ -808,6 +813,8 @@ export const Editable = {
       setFiles(updatedFiles);
 
       console.log("Files updated successfully:", updatedFiles);
+      // Success Popup
+    setTimeout(() => alert("Style changes saved successfully!"), 500);
 
     } catch (error) {
       console.error("Error fetching style changes:", error);
@@ -863,10 +870,129 @@ export const Editable = {
     }
   };
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+  const [structuredFiles, setStructuredFiles] = useState<FileItem[]>([]);
+  // Fetch project files on-demand (when download button is clicked)
+  const fetchProjectFiles = async () => {
+    try {
+      setLoading(true);
+      // Fetch project files
+      const filesResponse = await axios.get(`${BACKEND_URL}/project/getAllFiles?projectId=${PROJECTID}`, {
+        withCredentials: true,
+      });
+
+      console.log("[ProjectPage] Fetched raw files:", filesResponse.data.files);
+
+      // Process files into correct folder structure
+      const structuredFiles = buildFolderStructure(filesResponse.data.files);
+      setStructuredFiles(structuredFiles);
+    } catch (err) {
+      console.error("[ProjectPage] Error fetching project data:", err);
+      setError("Failed to load project data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buildFolderStructure = (flatFiles: FileItem[]): FileItem[] => {
+    const fileMap: Record<string, FileItem> = {};
+
+    // Step 1: Convert flat list to a map
+    flatFiles.forEach((file) => {
+      fileMap[file.path] = {
+        name: file.name,
+        type: file.type,
+        path: file.path,
+        content: file.type === "file" ? file.content : undefined,
+        children: file.type === "folder" ? [] : undefined, // Initialize empty children for folders
+      };
+    });
+
+    // Step 2: Attach children correctly to their parent folders
+    flatFiles.forEach((file) => {
+      const parentPath = file.path.split("/").slice(0, -1).join("/") || "/";
+
+      if (parentPath !== "/") {
+        if (!fileMap[parentPath]) {
+          // Ensure the parent folder exists
+          fileMap[parentPath] = {
+            name: parentPath.split("/").pop() || "root",
+            type: "folder",
+            path: parentPath,
+            children: [],
+          };
+        }
+
+        fileMap[parentPath]?.children?.push(fileMap[file.path]);
+      }
+    });
+
+    // Step 3: Get only top-level folders/files
+    return Object.values(fileMap).filter(
+      (file) => !file.path.includes("/") || file.path.split("/").length === 2
+    );
+  };
+
+  // Helper function to recursively add files to zip
+  const addFileToZip = (zip: JSZip, file: FileItem) => {
+    console.log('function called for:', file.name);
+
+    if (file.type === 'file') {
+      console.log('Processing file:', file.path);
+      const filePath = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+      zip.file(filePath, file.content || '');
+      console.log('Added file:', filePath);
+    }
+    else if (file.type === 'folder' && file.children) {
+      console.log('Processing folder:', file.path);
+      file.children.forEach(childFile => {
+        addFileToZip(zip, childFile);
+      });
+    }
+  };
+
+  const handleDownloadCode = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching project files...');
+
+      // Fetch project files before downloading
+      await fetchProjectFiles();
+      console.log('Files prepared:', structuredFiles);
+
+      // Create zip immediately after fetching files
+      const zip = new JSZip();
+
+      // Process all files
+      structuredFiles.forEach(file => {
+        console.log('Processing:', file.name);
+        addFileToZip(zip, file);
+      });
+
+      // Generate and save the zip file
+      const blob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: {
+          level: 9
+        }
+      });
+
+      // Save with project name or default
+      const zipName = `${PROJECTID}-${Date.now()}.zip`; // Project name can be customized as needed
+      saveAs(blob, zipName);
+    } catch (error) {
+      console.error('Error in download process:', error);
+      alert('Error downloading code. Check console for details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+    <div className="min-h-screen bg-gray-900 flex flex-col spac">
+      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 space-x-3">
         <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
         <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
         <button
@@ -886,6 +1012,21 @@ export const Editable = {
         >
           "Click here to Preview"
         </button>
+        <button
+          onClick={handleDownloadCode}
+          disabled={loading}
+          className={`
+              w-full md:w-auto px-6 py-3 rounded-lg font-medium
+              ${loading ? 'bg-gray-600' : 'bg-blue-600 hover:bg-blue-700'}
+              transition-colors duration-200
+            `}
+        >Download Code</button>
+
+        {Message && !isProcessing && <div className={`
+              w-1/12 md:w-auto px-6 py-3 rounded-lg font-medium text-white
+              ${loading ? 'bg-gray-600' : 'bg-blue-600 hover:bg-blue-700'}
+              transition-colors duration-200
+            `}>{Message}</div>}
 
         {isProcessing && (
           <div className="mt-2 text-gray-700 font-medium">
@@ -907,7 +1048,7 @@ export const Editable = {
                 />
               </div>
               <div>
-                <div className='flex'>
+                {/* <div className='flex'>
                   <br />
                   {(loading || !templateSet) && <Loader />}
                   {!(loading || !templateSet) && <div className='flex'>
@@ -939,7 +1080,7 @@ export const Editable = {
 
                     }} className='bg-purple-400 px-4'>Send</button>
                   </div>}
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

@@ -436,3 +436,31 @@ export const createProject = async (req, res) => {
     res.status(500).json({ error: "Failed to create project" });
   }
 };
+
+// Controller to delete a project and all associated files
+export const deleteProject = async (req, res) => {
+  const { userId, projectId } = req.body; // Assuming these are sent in the body
+
+  try {
+    // Find the project by ID and ensure it belongs to the user
+    const project = await Project.findOne({ _id: projectId, userId });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found or you do not have permission to delete this project' });
+    }
+
+    // Delete all associated files from the File model
+    await File.deleteMany({ projectId });
+
+    // Remove the project ID from the user's projects array
+    await User.updateOne({ _id: userId }, { $pull: { projects: projectId } });
+
+    // Delete the project itself
+    await Project.deleteOne({ _id: projectId });
+
+    return res.status(200).json({ message: 'Project and associated files successfully deleted' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Something went wrong while deleting the project' });
+  }
+};

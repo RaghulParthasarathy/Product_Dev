@@ -12,7 +12,8 @@ import {
   updateProjectStyleChanges,
   getProjectStyleChanges,
   getAllProjects,
-  getProjectById
+  getProjectById,
+  deleteProject
 } from '../Controller/Project.js';
 
 import authenticateUser from "../middleware/user.js";
@@ -57,5 +58,9 @@ router.get("/get-all-projects/:userId", authenticateUser, getAllProjects);
 
 // Route to get project details
 router.get("/:projectId", authenticateUser, getProjectById);
+
+// Delete project route
+router.delete('/:projectId', authenticateUser, deleteProject);
+
 
 export default router;
