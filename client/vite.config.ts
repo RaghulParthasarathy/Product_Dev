@@ -11,7 +11,9 @@ export default defineConfig({
     headers: {
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin"
-    }
+    },
+    host: '0.0.0.0', // Bind to all available interfaces (important for deployment)
+    port: process.env.PORT ? Number(process.env.PORT) : 5173, // Use Render's dynamic PORT environment variable, fallback to 5173 if not available
   },
   define: {
     "process.env": {}, // Prevents Babel from throwing process-related errors
