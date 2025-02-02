@@ -17,12 +17,41 @@ import { processFilesWithStyles } from "../utils/processFiles";
 import fileInfo from "../utils/editableFileInfo.json";
 import sample from "../utils/test_file.json"
 
-const PROJECTID = "679a26655a84fc483c15b205";
+
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  prompt?: string;
+}
 
 export function Builder() {
   const location = useLocation();
-  const { prompt } = location.state as { prompt: string }; // made here changes
-  const [userPrompt, setPrompt] = useState("");
+  
+  // Typecast location.state to the expected structure
+  const projectData = location.state as { _id?: string; name?: string; description?: string; prompt?: string } || {};
+
+  // State to store project details
+  const [project, setProject] = useState<Project>({
+    id: '',
+    name: '',
+    description: '',
+    prompt: ''
+  });
+
+  // Set project data when component mounts
+  useEffect(() => {
+    setProject({
+      id: projectData._id || '',
+      name: projectData.name || '',
+      description: projectData.description || '',
+      prompt: projectData.prompt || '',
+    });
+  }, [projectData]);
+  console.log("project data is: ", project);
+  const PROJECTID = project.id;
+  
+  const [userPrompt, setPrompt] = useState(project.prompt);
   const [llmMessages, setLlmMessages] = useState<{ role: "user" | "assistant", content: string; }[]>([]);
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
@@ -1331,7 +1360,7 @@ export function Builder() {
     console.log("prompt is: ", prompt);
 
     const response = await axios.post(`${BACKEND_URL}/template`, {
-      prompt: prompt.trim()
+      prompt: prompt
     });
     setTemplateSet(true);
     console.log("response of /template is : ", response.data);
@@ -1437,7 +1466,7 @@ export function Builder() {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/project/get-style?projectId=679a26655a84fc483c15b205`,
+        `http://localhost:5001/api/v1/project/get-style?projectId=${PROJECTID}`,
         {
           method: "GET",
           headers: {
@@ -1514,7 +1543,6 @@ export function Builder() {
         return updatedFiles;
       }
       );
-
 
       console.log('Processed Files:', processedFiles);
 
