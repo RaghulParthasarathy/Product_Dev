@@ -1,3 +1,25 @@
+/* @font-face {
+    font-family: "PolySans Median";
+    src: url("../public/fonts/PolySans\ Median\ Wide.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+} */
+
+@font-face {
+    font-family: "PolySans Neutral";
+    src: url("../public/fonts/PolySans-Neutral.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Optional: Apply globally */
+body {
+    font-family: "PolySans Neutral", sans-serif;
+}
+
+  
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

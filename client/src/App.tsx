@@ -7,11 +7,13 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import CreateProject from './pages/CreateProject';
 import ProjectDetails from './pages/ProjectDetails';
+import Test from "./test/index";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+      <Route path="/test" element={<Test />} />
         <Route path="/" element={<Home />} />
         <Route path="/builder" element={<Builder />} />
         <Route path="/landing" element={<Landing />} />
