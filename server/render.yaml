@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: my-app
-    env: node
-    buildCommand: |
-      npm install
-      pip install -r server/requirements.txt  # Adjust path if needed
-    startCommand: npm run dev
