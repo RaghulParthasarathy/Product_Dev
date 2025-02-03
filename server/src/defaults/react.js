@@ -1,4 +1,5 @@
-export const basePrompt = `Here is an artifact that contains all files of the project visible to you.
+export const basePrompt = `Here is an artifact that contains all files of the project visible to you. Make sure to give me output in the given below format 
+in <boltAction> and <boltArtifact> tag you can find the format below. so that I can extract it easily using my script file... 
 Consider the contents of ALL files in the project.
 
 <boltArtifact id="project-import" title="Project Files">
