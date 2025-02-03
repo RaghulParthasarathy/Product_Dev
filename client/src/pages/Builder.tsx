@@ -31,7 +31,7 @@ export function Builder() {
 
   // Typecast location.state to the expected structure
   const projectData = location.state as { _id?: string; name?: string; description?: string; prompt?: string } || {};
-
+  console.log("project data is: ", projectData);
   // State to store project details
   const [project, setProject] = useState<Project>({
     id: '',
@@ -40,17 +40,17 @@ export function Builder() {
     prompt: ''
   });
 
-  // Set project data when component mounts
-  useEffect(() => {
-    setProject({
-      id: projectData._id || '',
-      name: projectData.name || '',
-      description: projectData.description || '',
-      prompt: projectData.prompt || '',
-    });
-  }, [projectData]);
-  console.log("project data is: ", project);
-  const PROJECTID = project.id;
+  // // Set project data when component mounts
+  // useEffect(() => {
+  //   setProject({
+  //     id: projectData._id || '',
+  //     name: projectData.name || '',
+  //     description: projectData.description || '',
+  //     prompt: projectData.prompt || '',
+  //   });
+  // }, [projectData]);
+  // console.log("project data is: ", project);
+  // const PROJECTID = project.id;
 
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -499,6 +499,8 @@ export const Editable = {
         prompt: projectData.prompt || '',
       });
 
+      console.log("propmtpppppp is: ", projectData.prompt);
+
       // Update config.js dynamically with the correct PROJECTID
       setFiles((prevFiles) => {
         return prevFiles.map((folder) => {
@@ -523,6 +525,9 @@ export const Editable = {
       });
     }
   }, [projectData]);
+  console.log("project data is: ", project);
+  const PROJECTID = project.id;
+  console.log("PROJECT IS IS: ", PROJECTID);
 
   console.log("Updated config.js content:", files.find(f => f.name === "src")?.children?.find(f => f.name === "config.js")?.content);
 
@@ -650,10 +655,10 @@ export const Editable = {
 
   async function init() {
     console.log("init function called");
-    console.log("prompt is: ", prompt);
+    console.log("prompt is: ", projectData.prompt);
 
     const response = await axios.post(`${BACKEND_URL}/template`, {
-      prompt: prompt
+      prompt: projectData.prompt
     });
     setTemplateSet(true);
     console.log("response of /template is : ", response.data);
@@ -670,16 +675,20 @@ export const Editable = {
     console.log("hello all steps are here: ", steps);
 
     setLoading(true);
+    console.log("prompts areeeeee" , prompts);
+
 
     const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
-      messages: [...prompts, prompt].map(content => ({
+      messages: [...prompts, projectData.prompt].map(content => ({
         role: "user",
         content
       }))
-    })
+    });
+    console.log("steps response isssssss: ", stepsResponse.data.response);
+    
 
+    const cleanedResponse = stepsResponse.data.response.replace(/```[a-zA-Z]*/g, "");
 
-    const cleanedResponse = stepsResponse.data.response.replace(/{```javascript}/g, "");
 
     console.log("steps response is: ", cleanedResponse);
 
