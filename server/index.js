@@ -1,3 +1,4 @@
+
 import express from "express";
 import dotenv from "dotenv";
 import { geminiModel } from "./config/genaimodel.js";
@@ -17,16 +18,16 @@ const app = express();
 const port = 5001;
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) {
-      // Allow non-browser requests like Postman or server-to-server requests
-      return callback(null, true);
-    }
-    return callback(null, origin); // Allow any origin dynamically
-  },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: "Content-Type,Authorization",
-  credentials: true, // Allow cookies
+    origin: (origin, callback) => {
+        if (!origin) {
+            // Allow non-browser requests like Postman or server-to-server requests
+            return callback(null, true);
+        }
+        return callback(null, origin); // Allow any origin dynamically
+    },
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true, // Allow cookies
 };
 
 
@@ -37,23 +38,23 @@ app.use(express.json());
 ////////////
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 async function main() {
-  try {
-    const chatCompletion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: "What is ChatGPT and write something about India?" },
-      ],
-    });
+    try {
+        const chatCompletion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: "You are a helpful assistant." },
+                { role: "user", content: "What is ChatGPT and write something about India?" },
+            ],
+        });
 
-    console.log(chatCompletion.choices[0].message.content);
-  } catch (error) {
-    console.error("Error:", error);
-  }
+        console.log(chatCompletion.choices[0].message.content);
+    } catch (error) {
+        console.error("Error:", error);
+    }
 }
 
 // main();
@@ -61,52 +62,52 @@ async function main() {
 ////////////
 
 app.post("/api/v1/template", async (req, res) => {
-  const prompt = req.body.prompt;
-  console.log(prompt);
+    const prompt = req.body.prompt;
+    console.log(prompt);
 
-  const prompts = [
-    prompt,
-    "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra",
-  ];
+    const prompts = [
+        prompt,
+        "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra",
+    ];
 
-  const combinedPrompt = prompts.join("\n");
-  console.log("Combined prompt is : ", combinedPrompt);
+    const combinedPrompt = prompts.join("\n");
+    console.log("Combined prompt is : ", combinedPrompt);
 
-  console.log("Combined prompt is : ", combinedPrompt);
+    console.log("Combined prompt is : ", combinedPrompt);
 
-  try {
-    // const result = await geminiModel.generateContent(combinedPrompt);
-    // const answer = result.response.text().trim(); // Ensure trimmed output for comparison
-    const answer = "react"; // Ensure trimmed output for comparison
+    try {
+        // const result = await geminiModel.generateContent(combinedPrompt);
+        // const answer = result.response.text().trim(); // Ensure trimmed output for comparison
+        const answer = "react"; // Ensure trimmed output for comparison
 
-    if (answer === "react") {
-      console.log("Answer is : ", answer);
+        if (answer === "react") {
+            console.log("Answer is : ", answer);
 
-      res.json({
-        prompts: [
-          BASE_PROMPT,
-          `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
-        ],
-        uiPrompts: [reactBasePrompt],
-      });
-      return;
+            res.json({
+                prompts: [
+                    BASE_PROMPT,
+                    `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+                ],
+                uiPrompts: [reactBasePrompt],
+            });
+            return;
+        }
+
+        if (answer === "node") {
+            res.json({
+                prompts: [
+                    `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodeBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+                ],
+                uiPrompts: [nodeBasePrompt],
+            });
+            return;
+        }
+
+        res.status(403).json({ message: "You can't access this" });
+    } catch (error) {
+        console.error("Error generating response:", error.message);
+        res.status(500).json({ error: "Failed to generate response" });
     }
-
-    if (answer === "node") {
-      res.json({
-        prompts: [
-          `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodeBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
-        ],
-        uiPrompts: [nodeBasePrompt],
-      });
-      return;
-    }
-
-    res.status(403).json({ message: "You can't access this" });
-  } catch (error) {
-    console.error("Error generating response:", error.message);
-    res.status(500).json({ error: "Failed to generate response" });
-  }
 
 
 
@@ -115,48 +116,48 @@ app.post("/api/v1/template", async (req, res) => {
 import fs from 'fs';
 import path from 'path';
 
-import { promisify } from "util";
+// import { promisify } from "util";
 
-const execAsync = promisify(exec); // Convert exec() to a promise-based function
+// const execAsync = promisify(exec); // Convert exec() to a promise-based function
 
-// ✅ Async function to trigger Python and get response
-const runPythonAndGetResponse = async (cellIndex, res) => {
-    try {
-        // ✅ Execute Python script and wait for it to complete
-        console.log(`🚀 Executing Python: PythonTrigger.py ${cellIndex}...`);
-        const { stdout, stderr } = await execAsync(`python PythonTrigger.py ${cellIndex}`);
+// // ✅ Async function to trigger Python and get response
+// const runPythonAndGetResponse = async (cellIndex, res) => {
+//     try {
+//         // ✅ Execute Python script and wait for it to complete
+//         console.log(`🚀 Executing Python: PythonTrigger.py ${cellIndex}...`);
+//         const { stdout, stderr } = await execAsync(`python PythonTrigger.py ${cellIndex}`);
 
-        if (stderr) {
-            console.error("⚠️ Python Error:", stderr);
-            // return res.status(500).json({ error: "Python execution failed", details: stderr });
-        }
+//         if (stderr) {
+//             console.error("⚠️ Python Error:", stderr);
+//             // return res.status(500).json({ error: "Python execution failed", details: stderr });
+//         }
 
-        console.log(`✅ Python Output:\n${stdout}`);
+//         console.log(`✅ Python Output:\n${stdout}`);
 
-        // ✅ Dynamically import the output from output-text.js
-        const outputModule = await import("./output-text.js");
+//         // ✅ Dynamically import the output from output-text.js
+//         const outputModule = await import("./output-text.js");
 
-        console.log("Generated response:", outputModule.outputData.text);
+//         console.log("Generated response:", outputModule.outputData.text);
 
-        // ✅ Send response back
-        res.json({ response: outputModule.outputData.text });
+//         // ✅ Send response back
+//         res.json({ response: outputModule.outputData.text });
 
-    } catch (error) {
-        console.error("❌ Error executing Python script:", error);
-        // res.status(500).json({ error: "Failed to execute Python script" });
-    }
-};
+//     } catch (error) {
+//         console.error("❌ Error executing Python script:", error);
+//         // res.status(500).json({ error: "Failed to execute Python script" });
+//     }
+// };
 
 
 app.post("/api/v1/chat/", async (req, res) => {
-  const messages = req.body.messages;
-  console.log("Messages received/in /chat are:", messages);
+    const messages = req.body.messages;
+    console.log("Messages received/in /chat are:", messages);
 
-  // Extract the content from each message and combine them
-  const combinedPrompt = messages.map(msg => msg.content).join("\n") + "\n\n" +
-    "You should respond in the below format only, and do NOT add any extra text, " +
-    "explanations, or code blocks like ``javascript. Just return the content exactly as requested:\n\n "  +
-    `Here is an artifact that contains all files of the project visible to you.
+    // Extract the content from each message and combine them
+    const combinedPrompt = messages.map(msg => msg.content).join("\n") + "\n\n" +
+        "You should respond in the below format only, and do NOT add any extra text, " +
+        "explanations, or code blocks like ``javascript. Just return the content exactly as requested:\n\n " +
+        `Here is an artifact that contains all files of the project visible to you.
   Consider the contents of ALL files in the project.
   
   <boltArtifact id="project-import" title="Project Files">
@@ -174,23 +175,34 @@ app.post("/api/v1/chat/", async (req, res) => {
   </boltAction>
   </boltArtifact>`;
 
-  // console.log("Final Combined Prompt is:", combinedPrompt);
+    try {
+        const result = await geminiModel.generateContent(combinedPrompt);
+        const responseText = await result.response.text();
 
-  try {
+        console.log("Generated response:", responseText);
+        res.json({ response: responseText });
+    } catch (error) {
+        console.error("Error generating content:", error.message);
+        res.status(500).json({ error: "Failed to generate content" });
+    }
+
+    // console.log("Final Combined Prompt is:", combinedPrompt);
+
+    //   try {
     // Write the combinedPrompt to input-text.js
-    console.log("directory name is : ", "/");
-    const inputFilePath = path.join("./", 'input-text.js');
-    const inputTextContent = `export const inputData = \`${combinedPrompt}\`;`;
+    // console.log("directory name is : ", "/");
+    // const inputFilePath = path.join("./", 'input-text.js');
+    // const inputTextContent = `export const inputData = \`${combinedPrompt}\`;`;
 
-    fs.writeFileSync(inputFilePath, inputTextContent);
-    console.log("Input written to input-text.js");
+    // fs.writeFileSync(inputFilePath, inputTextContent);
+    // console.log("Input written to input-text.js");
 
-   
+
 
     // Set the cell index to run (modify as needed)
-    const cellIndex = 8;
+    // const cellIndex = 8;
 
-    await runPythonAndGetResponse(cellIndex, res);
+    // await runPythonAndGetResponse(cellIndex, res);
 
     // // Execute Python script with the cell index as an argument
     // exec(`python PythonTrigger.py ${cellIndex}`, (error, stdout, stderr) => {
@@ -213,10 +225,10 @@ app.post("/api/v1/chat/", async (req, res) => {
     //   res.status(500).json({ error: "Failed to import output-text.js" });
     // });
 
-  } catch (error) {
-    console.error("Error processing request:", error.message);
-    res.status(500).json({ error: "Failed to generate content" });
-  }
+    //   } catch (error) {
+    //     console.error("Error processing request:", error.message);
+    //     res.status(500).json({ error: "Failed to generate content" });
+    //   }
 });
 
 
@@ -269,44 +281,22 @@ app.post("/api/v1/chat/", async (req, res) => {
 
 
 
-// let history = [];
-
-// try {
-//   res.setHeader("Content-Type", "text/event-stream");
-//   res.setHeader("Cache-Control", "no-cache");
-//   res.setHeader("Connection", "keep-alive");
-
-//   console.log("Starting to generate response...");
-
-//   const answer = await getResponse(combinedPrompt, res, history);
-//   console.log(answer);
-
-//   res.end();
-// } catch (error) {
-//   console.error("Error generating response:", error.message);
-//   // Ensure that no other response is sent once streaming has started
-//   if (!res.headersSent) {
-//     res.status(500).json({ error: "Failed to generate response" });
-//   }
-// }
-// });
-
 
 app.use('/api/v1/users', authRoutes);
 
 app.use('/api/v1/project', projectRoutes);
 
 const start = async () => {
-  try {
-    await connectToDb(process.env.MONGO_URI);
-    console.log("Database connected successfully!");
+    try {
+        await connectToDb(process.env.MONGO_URI);
+        console.log("Database connected successfully!");
 
-    app.listen(port, async () => {
-      console.log(`Server is listening on port ${port}...`);
-    });
-  } catch (error) {
-    console.log(error);
-  }
+        app.listen(port, async () => {
+            console.log(`Server is listening on port ${port}...`);
+        });
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 start();
