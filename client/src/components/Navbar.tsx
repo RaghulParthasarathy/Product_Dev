@@ -62,22 +62,19 @@ export default function Navbar() {
   return (
    
       <Link
-        to={"login"}
-        className="top-20"
+        to={"/login"}
       >
-        <div className="m-40 flex justify-center text-center absolute -top-[16%] -right-[8%]">
+     
           <HoverBorderGradient
             containerClassName="rounded-full"
             as="button"
             className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
           >
             <span>
-              {
-               login?"Profile":"Login"
-              }
+              Get Started              
             </span>
           </HoverBorderGradient>
-        </div>
+    
       </Link>
   );
 }
