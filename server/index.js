@@ -6,6 +6,7 @@ import { basePrompt as nodeBasePrompt } from "./src/defaults/node.js";
 import { basePrompt as reactBasePrompt } from "./src/defaults/react.js";
 import authRoutes from "./Routes/Auth.js"
 import projectRoutes from "./Routes/Project.js"
+import { exec } from "child_process";
 
 import cors from "cors";
 dotenv.config();
@@ -64,20 +65,22 @@ app.post("/api/v1/template", async (req, res) => {
   console.log(prompt);
 
   const prompts = [
-    prompt ,
+    prompt,
     "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra",
   ];
 
   const combinedPrompt = prompts.join("\n");
-  console.log("Combined prompt is : ",combinedPrompt);
+  console.log("Combined prompt is : ", combinedPrompt);
 
-  console.log("Combined prompt is : ",combinedPrompt);
+  console.log("Combined prompt is : ", combinedPrompt);
 
   try {
-    const result = await geminiModel.generateContent(combinedPrompt);
-    const answer = result.response.text().trim(); // Ensure trimmed output for comparison
+    // const result = await geminiModel.generateContent(combinedPrompt);
+    // const answer = result.response.text().trim(); // Ensure trimmed output for comparison
+    const answer = "react"; // Ensure trimmed output for comparison
+
     if (answer === "react") {
-    console.log("Answer is : ",answer);
+      console.log("Answer is : ", answer);
 
       res.json({
         prompts: [
@@ -105,73 +108,187 @@ app.post("/api/v1/template", async (req, res) => {
     res.status(500).json({ error: "Failed to generate response" });
   }
 
-  
 
-  })
 
-  app.post("/api/v1/chat/", async (req, res) => {
-    const messages = req.body.messages;
-    console.log("Messages received:", messages);
-  
-    // Extract the content from each message and combine them
-    const combinedPrompt = messages.map(msg => msg.content).join("\n") + "\n\n" +
-        "You should respond in the below format only, and do NOT add any extra text, " +
-        "explanations, or code blocks like ```javascript. Just return the content exactly as requested:\n\n" +
-        `Here is an artifact that contains all files of the project visible to you.
-Consider the contents of ALL files in the project.
+})
 
-<boltArtifact id="project-import" title="Project Files">
+import fs from 'fs';
+import path from 'path';
 
-<boltAction type="file" filePath="public/index.html">
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>React App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
-</boltAction>
-</boltArtifact>`;
+import { promisify } from "util";
 
-    console.log("Final Combined Prompt is:", combinedPrompt);
-  
+const execAsync = promisify(exec); // Convert exec() to a promise-based function
+
+// ✅ Async function to trigger Python and get response
+const runPythonAndGetResponse = async (cellIndex, res) => {
     try {
-        const result = await geminiModel.generateContent(combinedPrompt);
-        const responseText = await result.response.text();
-        
-        console.log("Generated response:", responseText);
-        res.json({ response: responseText });
+        // ✅ Execute Python script and wait for it to complete
+        console.log(`🚀 Executing Python: PythonTrigger.py ${cellIndex}...`);
+        const { stdout, stderr } = await execAsync(`python PythonTrigger.py ${cellIndex}`);
+
+        if (stderr) {
+            console.error("⚠️ Python Error:", stderr);
+            // return res.status(500).json({ error: "Python execution failed", details: stderr });
+        }
+
+        console.log(`✅ Python Output:\n${stdout}`);
+
+        // ✅ Dynamically import the output from output-text.js
+        const outputModule = await import("./output-text.js");
+
+        console.log("Generated response:", outputModule.outputData.text);
+
+        // ✅ Send response back
+        res.json({ response: outputModule.outputData.text });
+
     } catch (error) {
-        console.error("Error generating content:", error.message);
-        res.status(500).json({ error: "Failed to generate content" });
+        console.error("❌ Error executing Python script:", error);
+        // res.status(500).json({ error: "Failed to execute Python script" });
     }
+};
+
+
+app.post("/api/v1/chat/", async (req, res) => {
+  const messages = req.body.messages;
+  console.log("Messages received/in /chat are:", messages);
+
+  // Extract the content from each message and combine them
+  const combinedPrompt = messages.map(msg => msg.content).join("\n") + "\n\n" +
+    "You should respond in the below format only, and do NOT add any extra text, " +
+    "explanations, or code blocks like ``javascript. Just return the content exactly as requested:\n\n "  +
+    `Here is an artifact that contains all files of the project visible to you.
+  Consider the contents of ALL files in the project.
+  
+  <boltArtifact id="project-import" title="Project Files">
+  
+  <boltAction type="file" filePath="public/index.html">
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>React App</title>
+    </head>
+    <body>
+      <div id="root"></div>
+    </body>
+  </html>
+  </boltAction>
+  </boltArtifact>`;
+
+  // console.log("Final Combined Prompt is:", combinedPrompt);
+
+  try {
+    // Write the combinedPrompt to input-text.js
+    console.log("directory name is : ", "/");
+    const inputFilePath = path.join("./", 'input-text.js');
+    const inputTextContent = `export const inputData = \`${combinedPrompt}\`;`;
+
+    fs.writeFileSync(inputFilePath, inputTextContent);
+    console.log("Input written to input-text.js");
+
+   
+
+    // Set the cell index to run (modify as needed)
+    const cellIndex = 8;
+
+    await runPythonAndGetResponse(cellIndex, res);
+
+    // // Execute Python script with the cell index as an argument
+    // exec(`python PythonTrigger.py ${cellIndex}`, (error, stdout, stderr) => {
+    //   if (error) {
+    //     console.error(`Error executing Python: ${error.message}`);
+    //     return;
+    //   }
+    //   if (stderr) {
+    //     console.error(`Python Error: ${stderr}`);
+    //     return;
+    //   }
+    //   console.log(`Python Output:\n${stdout}`);
+    // });
+    // // Since the output is already written in the file, directly import output-text.js
+    // import('./output-text.js').then((outputModule) => {
+    //   console.log("Generated response:", outputModule.outputText);
+    //   res.json({ response: outputModule.outputText });
+    // }).catch((error) => {
+    //   console.error("Error importing output-text.js:", error);
+    //   res.status(500).json({ error: "Failed to import output-text.js" });
+    // });
+
+  } catch (error) {
+    console.error("Error processing request:", error.message);
+    res.status(500).json({ error: "Failed to generate content" });
+  }
 });
 
-  
-  
 
-  // let history = [];
 
-  // try {
-  //   res.setHeader("Content-Type", "text/event-stream");
-  //   res.setHeader("Cache-Control", "no-cache");
-  //   res.setHeader("Connection", "keep-alive");
 
-  //   console.log("Starting to generate response...");
 
-  //   const answer = await getResponse(combinedPrompt, res, history);
-  //   console.log(answer);
 
-  //   res.end();
-  // } catch (error) {
-  //   console.error("Error generating response:", error.message);
-  //   // Ensure that no other response is sent once streaming has started
-  //   if (!res.headersSent) {
-  //     res.status(500).json({ error: "Failed to generate response" });
-  //   }
-  // }
+
+//   app.post("/api/v1/chat/", async (req, res) => {
+//     const messages = req.body.messages;
+//     console.log("Messages received:", messages);
+
+//     // Extract the content from each message and combine them
+//     const combinedPrompt = messages.map(msg => msg.content).join("\n") + "\n\n" +
+//         "You should respond in the below format only, and do NOT add any extra text, " +
+//         "explanations, or code blocks like ```javascript. Just return the content exactly as requested:\n\n" +
+//         `Here is an artifact that contains all files of the project visible to you.
+// Consider the contents of ALL files in the project.
+
+// <boltArtifact id="project-import" title="Project Files">
+
+// <boltAction type="file" filePath="public/index.html">
+// <!DOCTYPE html>
+// <html lang="en">
+//   <head>
+//     <title>React App</title>
+//   </head>
+//   <body>
+//     <div id="root"></div>
+//   </body>
+// </html>
+// </boltAction>
+// </boltArtifact>`;
+
+//     console.log("Final Combined Prompt is:", combinedPrompt);
+
+//     try {
+//         const result = await geminiModel.generateContent(combinedPrompt);
+//         const responseText = await result.response.text();
+
+//         console.log("Generated response:", responseText);
+//         res.json({ response: responseText });
+//     } catch (error) {
+//         console.error("Error generating content:", error.message);
+//         res.status(500).json({ error: "Failed to generate content" });
+//     }
+
+// });
+
+
+
+
+// let history = [];
+
+// try {
+//   res.setHeader("Content-Type", "text/event-stream");
+//   res.setHeader("Cache-Control", "no-cache");
+//   res.setHeader("Connection", "keep-alive");
+
+//   console.log("Starting to generate response...");
+
+//   const answer = await getResponse(combinedPrompt, res, history);
+//   console.log(answer);
+
+//   res.end();
+// } catch (error) {
+//   console.error("Error generating response:", error.message);
+//   // Ensure that no other response is sent once streaming has started
+//   if (!res.headersSent) {
+//     res.status(500).json({ error: "Failed to generate response" });
+//   }
+// }
 // });
 
 
