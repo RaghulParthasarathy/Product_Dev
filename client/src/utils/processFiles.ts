@@ -73,8 +73,6 @@ export const processFilesWithStyles = (
 ): FileItem[] => {
   console.log("Style Changes:", styleChanges);
   
-
-
   return files.map((file) => {
     if (file.type === "folder" && file.children) {
       // Recursively process the folder's children

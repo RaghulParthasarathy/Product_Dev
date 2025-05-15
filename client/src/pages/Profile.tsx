@@ -7,7 +7,6 @@ import { User, Plus, Briefcase, Home, Info, Phone, LogOut, Trash2 } from "lucide
 function Profile() {
   const [user, setUser] = useState<{ name: string; avatar?: string; id: string } | null>(null);
 
-  // const [username, setUsername] = useState<string | null>(null);
 
   const [projects, setProjects] = useState<{ _id: string; name: string; description?: string }[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -19,7 +18,6 @@ function Profile() {
         const response = await axios.get(`${BACKEND_URL}/users/user`, {
           withCredentials: true,
         });
-        // setUsername(response.data.username);
         console.log("User:", response.data);
         setUser({ name: response.data.username, avatar: "" , id: response.data.userId });
 
@@ -101,13 +99,13 @@ function Profile() {
               <h1 className="ml-2 text-2xl font-bold text-white">Dashboard</h1>
             </div>
             <nav className="flex items-center space-x-6">
-              <a href="/Landing" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
+              <a href="/" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
                 <Home className="w-4 h-4 mr-2" /> Home
               </a>
-              <a href="/Landing" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
+              <a href="/" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
                 <Info className="w-4 h-4 mr-2" /> About
               </a>
-              <a href="/Landing" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
+              <a href="/" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out hover:scale-105">
                 <Phone className="w-4 h-4 mr-2" /> Contact Us
               </a>
             </nav>

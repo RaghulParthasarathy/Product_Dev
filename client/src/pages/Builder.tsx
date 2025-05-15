@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { StepsList } from '../components/StepsList';
 import { FileExplorer } from '../components/FileExplorer';
 import { TabView } from '../components/TabView';
@@ -19,6 +19,8 @@ import sample from "../utils/test_file.json"
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
+import { User, Briefcase, Home, LogOut, Save, Eye, Download } from "lucide-react";
+
 interface Project {
   id: string;
   name: string;
@@ -29,10 +31,9 @@ interface Project {
 export function Builder() {
   const location = useLocation();
 
-  // Typecast location.state to the expected structure
   const projectData = location.state as { _id?: string; name?: string; description?: string; prompt?: string } || {};
   console.log("project data is: ", projectData);
-  // State to store project details
+
   const [project, setProject] = useState<Project>({
     id: '',
     name: '',
@@ -40,17 +41,7 @@ export function Builder() {
     prompt: ''
   });
 
-  // // Set project data when component mounts
-  // useEffect(() => {
-  //   setProject({
-  //     id: projectData._id || '',
-  //     name: projectData.name || '',
-  //     description: projectData.description || '',
-  //     prompt: projectData.prompt || '',
-  //   });
-  // }, [projectData]);
-  // console.log("project data is: ", project);
-  // const PROJECTID = project.id;
+  const [showPreview, setShowPreview] = useState(false);
 
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,14 +56,6 @@ export function Builder() {
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
-
-  // // Ensure TypeScript treats fileInfo.FileData as FileItem
-  // const fileDataAsFileItem: FileItem = sample.FileData as FileItem;
-  // console.log("FILE DATA AS FILE ITEM IS ", fileDataAsFileItem);
-  // // Now pass it to processFileContent
-  // const ans = processFileContent(fileDataAsFileItem);
-  // console.log("THAT ANSWER IS ", ans);
-
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [files, setFiles] = useState<FileItem[]>([
@@ -654,12 +637,17 @@ export const Editable = {
   /////init function
 
   async function init() {
+    setIsProcessing(true);
+
+    setMessage("Your code will be ready shortly. Please wait...");
+
     console.log("init function called");
     console.log("prompt is: ", projectData.prompt);
 
     const response = await axios.post(`${BACKEND_URL}/template`, {
       prompt: projectData.prompt
     });
+
     setTemplateSet(true);
     console.log("response of /template is : ", response.data);
 
@@ -675,7 +663,7 @@ export const Editable = {
     console.log("hello all steps are here: ", steps);
 
     setLoading(true);
-    console.log("prompts areeeeee" , prompts);
+    console.log("prompts areeeeee", prompts);
 
 
     const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
@@ -685,7 +673,9 @@ export const Editable = {
       }))
     });
     console.log("steps response isssssss: ", stepsResponse.data.response);
-    
+
+    setMessage("Fetched response successfully..");
+
 
     const cleanedResponse = stepsResponse.data.response.replace(/```[a-zA-Z]*/g, "");
 
@@ -720,10 +710,17 @@ export const Editable = {
     })));
 
     setLlmMessages(x => [...x, { role: "assistant", content: cleanedResponse }])
+
+    setMessage("Now you can see your code in code editor and preview in preview panel.");
+    setTimeout(() => {
+      setMessage("");
+      setIsProcessing(false);
+    }, 4000);
+
   }
 
   useEffect(() => {
-    init();
+    init(); ////////////////////////////////////////////////////////////////////////////////////////////////////
   }, [])
 
   // Delete all existing files in the backend
@@ -779,6 +776,7 @@ export const Editable = {
 
   const handleClick = async () => {
     setIsProcessing(true); // Set to true to indicate the process has started
+    setMessage("Changes are being saved..");
 
     console.log("Fetching style changes...");
 
@@ -818,10 +816,23 @@ export const Editable = {
       setFiles(updatedFiles);
 
       console.log("Files updated successfully:", updatedFiles);
+
+      setMessage("Style changes saved successfully!");
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
       // Success Popup
-    setTimeout(() => alert("Style changes saved successfully!"), 500);
+      setTimeout(() => alert("Style changes saved successfully!"), 500);
 
     } catch (error) {
+
+      setMessage("Error fetching style changes!!");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
       console.error("Error fetching style changes:", error);
       throw error; // Propagate error to caller
     }
@@ -832,6 +843,8 @@ export const Editable = {
 
   const handlePreview = async () => {
     setIsProcessing(true);
+
+    setMessage("Loading preview. Please wait...");
 
     try {
       console.log('Files to process are :', files);
@@ -868,9 +881,29 @@ export const Editable = {
 
       setFiles(processedFiles);
 
+      setMessage("Now you can see the preview!");
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
     } catch (error) {
+
+      setMessage("Error fetching or processing files!!");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
       console.error('Error fetching or processing files:', error);
     } finally {
+
+      setMessage("Now you can see the preview!");
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
+
       setIsProcessing(false);
     }
   };
@@ -961,6 +994,8 @@ export const Editable = {
       setLoading(true);
       console.log('Fetching project files...');
 
+      setMessage("Preparing your download. Please wait...");
+
       // Fetch project files before downloading
       await fetchProjectFiles();
       console.log('Files prepared:', structuredFiles);
@@ -986,25 +1021,96 @@ export const Editable = {
       // Save with project name or default
       const zipName = `${PROJECTID}-${Date.now()}.zip`; // Project name can be customized as needed
       saveAs(blob, zipName);
+
+      setMessage("Downloaded succefully.");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
     } catch (error) {
       console.error('Error in download process:', error);
+      setMessage("Error in download process, please retry.");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
       alert('Error downloading code. Check console for details.');
     } finally {
       setLoading(false);
     }
   };
 
+  ////////USER NAME////////
+
+  const [user, setUser] = useState<{ name: string; avatar?: string } | null>(null);
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/users/user`, {
+          withCredentials: true,
+        });
+        setUser({ name: response.data.username });
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSignOut = () => {
+    window.location.href = "/login";
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col spac">
+
+      {/* <header className="bg-slate-800 shadow-lg border-b border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-8">
+            <div className="flex items-center">
+              <Briefcase className="h-8 w-8 text-blue-400 animate-pulse" />
+              <h1 className="ml-2 text-2xl font-bold text-white">Create New Project</h1>
+            </div>
+            <nav className="flex items-center space-x-6">
+              <a href="/profile" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"> <Home className="w-4 h-4 mr-2" /> Dashboard </a>
+            </nav>
+          </div>
+          <div className="flex items-center space-x-4 relative">
+            <span className="text-slate-300">{user?.name || "Guest"}</span>
+            <div className="relative">
+              <button onClick={() => setDropdownOpen(!dropdownOpen)} className="focus:outline-none hover:scale-105 transition-transform duration-300">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full border-2 border-blue-400 cursor-pointer hover:border-blue-300 transition-colors duration-300" />
+                ) : (
+                  <User className="h-10 w-10 p-2 rounded-full bg-slate-700 text-blue-400 cursor-pointer hover:bg-slate-600 transition-colors duration-300" />
+                )}
+              </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-md shadow-xl py-1 z-10 border border-slate-700 animate-fadeIn">
+                  <button onClick={handleSignOut} className="flex items-center w-full px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors duration-300">
+                    <LogOut className="h-4 w-4 mr-2" /> Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 space-x-3">
+
         <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
-        <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
+        <p className="text-sm text-gray-400 mt-1">Prompt: {projectData.prompt}</p>
         <button
           className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
             }`}
           onClick={handleClick}
-          disabled={isProcessing} // Disable button while processing
+          disabled={isProcessing}
         >
           {isProcessing ? "Saving..." : "Save Changes"}
         </button>
@@ -1013,7 +1119,7 @@ export const Editable = {
           className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out ${isProcessing ? "opacity-50 cursor-not-allowed" : ""
             }`}
           onClick={handlePreview}
-          disabled={isProcessing} // Disable button while processing
+          disabled={isProcessing}
         >
           "Click here to Preview"
         </button>
@@ -1039,65 +1145,128 @@ export const Editable = {
           </div>
         )}
 
-      </header>
+      </header> */}
 
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full grid grid-cols-4 gap-6 p-6">
-          <div className="col-span-1 space-y-6 overflow-auto">
-            <div>
-              <div className="max-h-[75vh] overflow-scroll">
-                <StepsList
-                  steps={steps}
-                  currentStep={currentStep}
-                  onStepClick={setCurrentStep}
-                />
+      <header className="bg-slate-800 shadow-lg border-b border-slate-700 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col space-y-4">
+          {/* Top Row: Title, Nav, User */}
+          <div className="flex justify-between items-start flex-wrap gap-y-4">
+            {/* Left Side */}
+            <div className="flex flex-col space-y-2 sm:space-y-3">
+              <div className="flex items-center space-x-8">
+                <div className="flex items-center">
+                  <Briefcase className="h-8 w-8 text-blue-400 animate-pulse" />
+                  <h1 className="ml-2 text-2xl font-bold text-white">Preview Project</h1>
+                </div>
+                <nav className="flex items-center space-x-6">
+                  <a href="/profile" className="flex items-center text-slate-300 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium">
+                    <Home className="w-4 h-4 mr-2" /> Dashboard
+                  </a>
+                </nav>
               </div>
+
               <div>
-                {/* <div className='flex'>
-                  <br />
-                  {(loading || !templateSet) && <Loader />}
-                  {!(loading || !templateSet) && <div className='flex'>
-                    <textarea value={userPrompt} onChange={(e) => {
-                      setPrompt(e.target.value)
-                    }} className='p-2 w-full'></textarea>
-                    <button onClick={async () => {
-                      const newMessage = {
-                        role: "user" as "user",
-                        content: userPrompt
-                      };
+                <p className="text-sm text-gray-400 mt-1">Prompt: {projectData.prompt}</p>
+              </div>
+            </div>
 
-                      setLoading(true);
-                      const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
-                        messages: [...llmMessages, newMessage]
-                      });
-                      setLoading(false);
-
-                      setLlmMessages(x => [...x, newMessage]);
-                      setLlmMessages(x => [...x, {
-                        role: "assistant",
-                        content: stepsResponse.data.response
-                      }]);
-
-                      setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
-                        ...x,
-                        status: "pending" as "pending"
-                      }))]);
-
-                    }} className='bg-purple-400 px-4'>Send</button>
-                  </div>}
-                </div> */}
+            {/* Right Side: User Profile */}
+            <div className="flex items-center space-x-4 relative">
+              <span className="text-slate-300">{user?.name || "Guest"}</span>
+              <div className="relative">
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="focus:outline-none hover:scale-105 transition-transform duration-300">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full border-2 border-blue-400 cursor-pointer hover:border-blue-300 transition-colors duration-300" />
+                  ) : (
+                    <User className="h-10 w-10 p-2 rounded-full bg-slate-700 text-blue-400 cursor-pointer hover:bg-slate-600 transition-colors duration-300" />
+                  )}
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-md shadow-xl py-1 z-10 border border-slate-700 animate-fadeIn">
+                    <button onClick={handleSignOut} className="flex items-center w-full px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors duration-300">
+                      <LogOut className="h-4 w-4 mr-2" /> Sign out
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className="col-span-1">
-            <FileExplorer
-              files={files}
-              onFileSelect={setSelectedFile}
-            />
+
+          {/* Button Row */}
+          <div className="flex justify-left items-center space-x-6 mt-2">
+            {/* Save Button */}
+            <div className="relative group">
+              <button
+                onClick={handleClick}
+                disabled={isProcessing}
+                className={`text-blue-400 hover:text-blue-300 p-2 rounded-full transition duration-300 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <Save className="h-5 w-5" />
+              </button>
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Save changes
+              </div>
+            </div>
+
+            {/* Preview Button */}
+            <div className="relative group">
+              <button
+                onClick={handlePreview}
+                disabled={isProcessing}
+                className={`text-blue-400 hover:text-blue-300 p-2 rounded-full transition duration-300 ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <Eye className="h-5 w-5" />
+              </button>
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Preview Website
+              </div>
+            </div>
+
+            {/* Download Button */}
+            <div className="relative group">
+              <button
+                onClick={handleDownloadCode}
+                disabled={loading}
+                className={`text-blue-400 hover:text-blue-300 p-2 rounded-full transition duration-300 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <Download className="h-5 w-5" />
+              </button>
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Download Code
+              </div>
+            </div>
+
+            {isProcessing && (
+              <div className="text-gray-300 font-medium">
+                {Message}
+              </div>
+            )}
+
           </div>
-          <div className="col-span-2 bg-gray-900 rounded-lg shadow-lg p-4 h-[calc(100vh-8rem)]">
+
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-hidden">
+        <div className="grid grid-cols-4 gap-6 px-4 py-2">
+          <div className="col-span-1 space-y-6 overflow-auto">
+            <div>
+
+              <div className="col-span-1 pl-4">
+                <FileExplorer
+                  files={files}
+                  onFileSelect={setSelectedFile}
+                />
+              </div>
+
+              <div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-2 bg-gray-900 rounded-lg shadow-lg p-4 h-[calc(94vh-8rem)] w-[calc(70vw)]">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="h-[calc(100%-4rem)]">
+            <div className="h-[calc(100%-4rem)] ">
               {activeTab === 'code' ? (
                 <CodeEditor file={selectedFile} />
               ) : (
@@ -1107,6 +1276,8 @@ export const Editable = {
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 }
