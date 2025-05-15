@@ -62,27 +62,27 @@ As we move forward, these insights will guide the development of a collaborative
 
 Landing Page
 
-<img src="./Landing.png" alt="login page" height ="400" width="600">
+<img src="./Landing.png" alt="login page" style="width: 100%; height: auto;">
 
 SignUp Page
 
-<img src="./SignUp.jpg" alt="login page" height ="400" width="600">
+<img src="./SignUp.jpg" alt="login page" style="width: 100%; height: auto;">
 
 Login Page
 
-<img src="./Login.jpg" alt="login page" height ="400" width="600">
+<img src="./Login.jpg" alt="login page" style="width: 100%; height: auto;">
 
 Dashboard Page
 
-<img src="./DashBoard.jpg" alt="project page" height ="400" width="600">
+<img src="./DashBoard.jpg" alt="project page" style="width: 100%; height: auto;">
 
 Prompt Page
 
-<img src="./Prompt.jpg" alt="profile page" height ="400" width="600">
+<img src="./Prompt.jpg" alt="profile page" style="width: 100%; height: auto;">
 
 Preview Page
 
-<img src="./Preview.jpg" alt="profile page" height ="400" width="600">
+<img src="./Preview.jpg" alt="profile page" style="width: 100%; height: auto;">
 
 
 ## Tech-Stack Used
