@@ -160,9 +160,9 @@ app.post("/api/v1/chat/", async (req, res) => {
         `Here is an artifact that contains all files of the project visible to you.
   Consider the contents of ALL files in the project.
   
-  <boltArtifact id="project-import" title="Project Files">
+  <genwebArtifact id="project-import" title="Project Files">
   
-  <boltAction type="file" filePath="public/index.html">
+  <genwebAction type="file" filePath="public/index.html">
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -172,8 +172,8 @@ app.post("/api/v1/chat/", async (req, res) => {
       <div id="root"></div>
     </body>
   </html>
-  </boltAction>
-  </boltArtifact>`;
+  </genwebAction>
+  </genwebArtifact>`;
 
     try {
         const result = await geminiModel.generateContent(combinedPrompt);
@@ -248,9 +248,9 @@ app.post("/api/v1/chat/", async (req, res) => {
 //         `Here is an artifact that contains all files of the project visible to you.
 // Consider the contents of ALL files in the project.
 
-// <boltArtifact id="project-import" title="Project Files">
+// <genwebArtifact id="project-import" title="Project Files">
 
-// <boltAction type="file" filePath="public/index.html">
+// <genwebAction type="file" filePath="public/index.html">
 // <!DOCTYPE html>
 // <html lang="en">
 //   <head>
@@ -260,8 +260,8 @@ app.post("/api/v1/chat/", async (req, res) => {
 //     <div id="root"></div>
 //   </body>
 // </html>
-// </boltAction>
-// </boltArtifact>`;
+// </genwebAction>
+// </genwebArtifact>`;
 
 //     console.log("Final Combined Prompt is:", combinedPrompt);
 
