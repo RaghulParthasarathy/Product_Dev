@@ -14,12 +14,12 @@ Here is an artifact that contains all files of the project visible to you.
 Consider the contents of ALL files in the project.
 
 Here is an artifact that contains all files of the project visible to you. Make sure to give me output in the given below format 
-in <boltAction> and <boltArtifact> tag you can find the format below. so that I can extract it easily using my script file... 
+in <genwebAction> and <genwebArtifact> tag you can find the format below. so that I can extract it easily using my script file... 
 Consider the contents of ALL files in the project.
 
-<boltArtifact id="project-import" title="Project Files">
+<genwebArtifact id="project-import" title="Project Files">
 
-<boltAction type="file" filePath="package.json">
+<genwebAction type="file" filePath="package.json">
 {
   "name": "my-react-page",
   "version": "0.1.0",
@@ -70,9 +70,9 @@ Consider the contents of ALL files in the project.
     "tailwindcss": "^3.4.17"
   }
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="tailwind.config.js">
+<genwebAction type="file" filePath="tailwind.config.js">
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -84,18 +84,18 @@ module.exports = {
   },
   plugins: [],
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="postcss.config.js">
+<genwebAction type="file" filePath="postcss.config.js">
 module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="public/index.html">
+<genwebAction type="file" filePath="public/index.html">
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -105,9 +105,9 @@ module.exports = {
     <div id="root"></div>
   </body>
 </html>
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/index.js">
+<genwebAction type="file" filePath="src/index.js">
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -119,15 +119,15 @@ root.render(
     <App />
   </React.StrictMode>
 );
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/index.css">
+<genwebAction type="file" filePath="src/index.css">
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/App.js">
+<genwebAction type="file" filePath="src/App.js">
 /* eslint-disable react/jsx-pascal-case */
 import './App.css';
 
@@ -138,17 +138,17 @@ function App() {
 }
 
 export default App;
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/App.css">
+<genwebAction type="file" filePath="src/App.css">
 /* General styling */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
-</boltAction>
+</genwebAction>
 
-</boltArtifact>
+</genwebArtifact>
 
 I am **very particular about my project's file structure**. You **must not modify** any files except `App.js` and `App.css`. All other files should remain exactly as they are.
 
@@ -188,9 +188,9 @@ You should respond in the below format only, and do NOT add any extra text, expl
  Here is an artifact that contains all files of the project visible to you.
   Consider the contents of ALL files in the project.
   
-  <boltArtifact id="project-import" title="Project Files">
+  <genwebArtifact id="project-import" title="Project Files">
   
-  <boltAction type="file" filePath="public/index.html">
+  <genwebAction type="file" filePath="public/index.html">
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -200,5 +200,5 @@ You should respond in the below format only, and do NOT add any extra text, expl
       <div id="root"></div>
     </body>
   </html>
-  </boltAction>
-  </boltArtifact>`;
+  </genwebAction>
+  </genwebArtifact>`;
