@@ -3,14 +3,14 @@ import { Step, StepType } from './types/index';
 /*
  * Parse input XML and convert it into steps.
  * Eg: Input - 
- * <boltArtifact id=\"project-import\" title=\"Project Files\">
- *  <boltAction type=\"file\" filePath=\"eslint.config.js\">
+ * <genwebArtifact id=\"project-import\" title=\"Project Files\">
+ *  <genwebAction type=\"file\" filePath=\"eslint.config.js\">
  *      import js from '@eslint/j s';\nimport globals from 'globals';\n
- *  </boltAction>
- * <boltAction type="shell">
+ *  </genwebAction>
+ * <genwebAction type="shell">
  *      node index.js
- * </boltAction>
- * </boltArtifact>
+ * </genwebAction>
+ * </genwebArtifact>
  * 
  * Output - 
  * [{
@@ -31,8 +31,8 @@ import { Step, StepType } from './types/index';
 
 
 // export function parseXml(response: string): Step[] {
-//     // Extract the XML content between <boltArtifact> tags
-//     const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
+//     // Extract the XML content between <genwebArtifact> tags
+//     const xmlMatch = response.match(/<genwebArtifact[^>]*>([\s\S]*?)<\/genwebArtifact>/);
     
 //     if (!xmlMatch) {
 //       return [];
@@ -55,8 +55,8 @@ import { Step, StepType } from './types/index';
 //       status: 'pending'
 //     });
   
-//     // Regular expression to find boltAction elements
-//     const actionRegex = /<boltAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/boltAction>/g;
+//     // Regular expression to find genwebAction elements
+//     const actionRegex = /<genwebAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/genwebAction>/g;
     
 //     let match;
 //     while ((match = actionRegex.exec(xmlContent)) !== null) {
@@ -90,8 +90,8 @@ import { Step, StepType } from './types/index';
 //   }
 
 export function parseXml(response: string, startId: number = 1): Step[] {
-  // Extract the XML content between <boltArtifact> tags
-  const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
+  // Extract the XML content between <genwebArtifact> tags
+  const xmlMatch = response.match(/<genwebArtifact[^>]*>([\s\S]*?)<\/genwebArtifact>/);
   
   if (!xmlMatch) {
       return [];
@@ -114,8 +114,8 @@ export function parseXml(response: string, startId: number = 1): Step[] {
       status: 'pending'
   });
 
-  // Regular expression to find boltAction elements
-  const actionRegex = /<boltAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/boltAction>/g;
+  // Regular expression to find genwebAction elements
+  const actionRegex = /<genwebAction\s+type="([^"]*)"(?:\s+filePath="([^"]*)")?>([\s\S]*?)<\/genwebAction>/g;
 
   let match;
   while ((match = actionRegex.exec(xmlContent)) !== null) {
