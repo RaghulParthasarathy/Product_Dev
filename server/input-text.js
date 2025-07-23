@@ -1,0 +1,204 @@
+export const inputData = `
+For all webpage designs, ensure they are visually stunning, unique, and fully production-ready—no generic or cookie-cutter layouts.
+
+This project follows a React-based structure with App.js and index.js. Use App.css for styling by default, and apply Tailwind CSS only when necessary.
+
+By default, use .js syntax, React Hooks, and Lucide React for icons. Do not install additional UI libraries, icon packs, or themes unless explicitly requested.
+
+For imagery, use stock photos from Unsplash and link directly to valid URLs within <img> tags—do not download or embed images.
+
+Maintain high-quality, responsive, and well-structured code, ensuring best practices for performance and accessibility.
+
+
+Here is an artifact that contains all files of the project visible to you.
+Consider the contents of ALL files in the project.
+
+Here is an artifact that contains all files of the project visible to you. Make sure to give me output in the given below format 
+in <genwebAction> and <genwebArtifact> tag you can find the format below. so that I can extract it easily using my script file... 
+Consider the contents of ALL files in the project.
+
+<genwebArtifact id="project-import" title="Project Files">
+
+<genwebAction type="file" filePath="package.json">
+{
+  "name": "my-react-page",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^1.7.9",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cra-template": "1.2.0",
+    "lucide-react": "^0.473.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-scripts": "5.0.1",
+    "tailwind": "^4.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
+  }
+}
+</genwebAction>
+
+<genwebAction type="file" filePath="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./public/index.html"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+</genwebAction>
+
+<genwebAction type="file" filePath="postcss.config.js">
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</genwebAction>
+
+<genwebAction type="file" filePath="public/index.html">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+</genwebAction>
+
+<genwebAction type="file" filePath="src/index.js">
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+</genwebAction>
+
+<genwebAction type="file" filePath="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</genwebAction>
+
+<genwebAction type="file" filePath="src/App.js">
+/* eslint-disable react/jsx-pascal-case */
+import './App.css';
+
+function App() {
+  return (
+    <div>Hello World</div>
+  );
+}
+
+export default App;
+</genwebAction>
+
+<genwebAction type="file" filePath="src/App.css">
+/* General styling */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+</genwebAction>
+
+</genwebArtifact>
+
+I am **very particular about my project's file structure**. You **must not modify** any files except `App.js` and `App.css`. All other files should remain exactly as they are.
+
+### Guidelines:
+- Ensure all webpage designs are **visually stunning, unique, and production-ready**—no generic or cookie-cutter layouts.
+- Use **React (.js syntax)**, **Lucide React** for icons, and **React Hooks** where needed.
+- Do **not** install any additional UI libraries, themes, or icon packs unless explicitly requested.
+- Use **stock photos from Unsplash**, linking only valid URLs inside `<img>` tags. Do **not** download or embed images.
+- The AI **must adhere strictly** to the provided file structure, making modifications **only** in `App.js` and `App.css`.
+
+### File Structure (Do Not Alter Except `App.js` & `App.css`):
+
+```
+/src  
+  ├── App.js  (modifiable)  
+  ├── index.js  (do not modify)  
+  ├── App.css  (modifiable)  
+  ├── index.css  (do not modify)  
+/public  
+  ├── index.html  (do not modify)  
+/package.json  (do not modify)  
+/tailwind.config.js  (do not modify)  
+/postcss.config.js  (do not modify)  
+```
+
+
+
+Here is a list of files that exist on the file system but are not being shown to you:
+
+  - .gitignore
+  - package-lock.json
+
+create a blogging website
+
+You should respond in the below format only, and do NOT add any extra text, explanations, or code blocks like ``javascript. Just return the content exactly as requested:
+
+ Here is an artifact that contains all files of the project visible to you.
+  Consider the contents of ALL files in the project.
+  
+  <genwebArtifact id="project-import" title="Project Files">
+  
+  <genwebAction type="file" filePath="public/index.html">
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>React App</title>
+    </head>
+    <body>
+      <div id="root"></div>
+    </body>
+  </html>
+  </genwebAction>
+  </genwebArtifact>`;

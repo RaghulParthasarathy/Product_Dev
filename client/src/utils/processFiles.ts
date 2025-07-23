@@ -73,8 +73,6 @@ export const processFilesWithStyles = (
 ): FileItem[] => {
   console.log("Style Changes:", styleChanges);
   
-
-
   return files.map((file) => {
     if (file.type === "folder" && file.children) {
       // Recursively process the folder's children
@@ -307,6 +305,6 @@ const jsonDataExample: Record<string, { id: string; styles?: Record<string, stri
   ;
 
 // ✅ Debugging: Update JSX with styles from JSON
-const updatedCodeExample = updateReactCode(inputCodeExample, JSON.stringify(jsonDataExample));
+// const updatedCodeExample = updateReactCode(inputCodeExample, JSON.stringify(jsonDataExample));
 
-console.log("🔥 Updated Code:\n", updatedCodeExample);
+// console.log("🔥 Updated Code:\n", updatedCodeExample);

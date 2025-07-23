@@ -2,47 +2,47 @@ import User from '../Model/User.js';
 import Project from '../Model/Project.js';
 import File from '../Model/File.js';
 
-// Controller to create a new project and add files to it
-export const createProject = async (req, res) => {
-  const { userId, projectName, projectDescription } = req.body;
+// // Controller to create a new project and add files to it
+// export const createProject = async (req, res) => {
+//   const { userId, projectName, projectDescription } = req.body;
 
-  try {
-    // Validate input
-    if (!userId || !projectName) {
-      return res.status(400).json({ message: 'User ID and project name are required' });
-    }
+//   try {
+//     // Validate input
+//     if (!userId || !projectName) {
+//       return res.status(400).json({ message: 'User ID and project name are required' });
+//     }
 
-    // Find the user by ID
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+//     // Find the user by ID
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
 
-    // Create a new project
-    const newProject = new Project({
-      name: projectName,
-      description: projectDescription || '', // Default to an empty string if no description is provided
-      files: [], // Files can be added later
-    });
+//     // Create a new project
+//     const newProject = new Project({
+//       name: projectName,
+//       description: projectDescription || '', // Default to an empty string if no description is provided
+//       files: [], // Files can be added later
+//     });
 
-    // Save the project
-    await newProject.save();
+//     // Save the project
+//     await newProject.save();
 
-    // Add the project to the user's projects array
-    user.projects = user.projects || []; // Ensure the projects array exists
-    user.projects.push(newProject._id);
-    await user.save();
+//     // Add the project to the user's projects array
+//     user.projects = user.projects || []; // Ensure the projects array exists
+//     user.projects.push(newProject._id);
+//     await user.save();
 
-    // Respond with the created project
-    return res.status(201).json({
-      message: 'Project created successfully',
-      project: newProject,
-    });
-  } catch (err) {
-    console.error('Error creating project:', err.message);
-    return res.status(500).json({ message: 'Server error' });
-  }
-};
+//     // Respond with the created project
+//     return res.status(201).json({
+//       message: 'Project created successfully',
+//       project: newProject,
+//     });
+//   } catch (err) {
+//     console.error('Error creating project:', err.message);
+//     return res.status(500).json({ message: 'Server error' });
+//   }
+// };
 
 export const getStyle = async (req, res) => {
   const { projectId } = req.body;
@@ -106,7 +106,7 @@ export const uploadFile = async (req, res) => {
       return res.status(400).json({ error: 'Project ID, file name, path, and type are required' });
     }
 
-    // Find the project
+    // // Find the project
     const project = await Project.findById(projectId);
     if (!project) {
       console.log("Project not found");
@@ -115,12 +115,12 @@ export const uploadFile = async (req, res) => {
 
     console.log("Project found:", project.name);
 
-    // Check if a file with the same path already exists within the project
-    const existingFile = await File.findOne({ projectId, path });
-    if (existingFile) {
-      console.log("File with the same path already exists:", path);
-      return res.status(400).json({ error: 'A file with this path already exists in the project' });
-    }
+    // // Check if a file with the same path already exists within the project
+    // const existingFile = await File.findOne({ projectId, path });
+    // if (existingFile) {
+    //   console.log("File with the same path already exists:", path);
+    //   return res.status(400).json({ error: 'A file with this path already exists in the project' });
+    // }
 
     // Create a new file
     const newFile = new File({
@@ -360,5 +360,107 @@ export const getProjectStyleChanges = async (req, res) => {
   } catch (error) {
     console.error('Error fetching styleChanges:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const getAllProjects = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`Fetching all projects for user: ${userId}`);
+    const projects = await Project.find({ userId }).populate("files");
+    console.log("Projects found:", projects);
+
+    res.status(200).json(projects);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch projects" });
+  }
+};
+
+export const getProjectById = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    console.log(`[getProjectById] Fetching project with ID: ${projectId}`);
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ error: "Project not found." });
+    }
+
+    res.status(200).json({
+      name: project.name,
+      description: project.description,
+      createdAt: project.createdAt,
+    });
+  } catch (error) {
+    console.error("[getProjectById] Error:", error);
+    res.status(500).json({ error: "Failed to fetch project details." });
+  }
+};
+
+export const createProject = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const userId = req.user.userId; // Get userId from JWT
+
+    if (!name) {
+      return res.status(400).json({ error: "Project name is required." });
+    }
+
+    console.log(`Creating project for user: ${userId}`);
+    console.log("Project details:", { name, description });
+
+    const newProject = new Project({
+      name,
+      description,
+      userId,
+    });
+
+    await newProject.save();
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.projects.push(newProject._id); // Add project ID to user’s projects
+    await user.save();
+
+    console.log("Project successfully created and added to user profile");
+
+    res.status(201).json(newProject);
+  } catch (error) {
+    console.error("Error creating project:", error);
+    res.status(500).json({ error: "Failed to create project" });
+  }
+};
+
+// Controller to delete a project and all associated files
+export const deleteProject = async (req, res) => {
+  const { userId, projectId } = req.body; // Assuming these are sent in the body
+
+  try {
+    // Find the project by ID and ensure it belongs to the user
+    const project = await Project.findOne({ _id: projectId, userId });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found or you do not have permission to delete this project' });
+    }
+
+    // Delete all associated files from the File model
+    await File.deleteMany({ projectId });
+
+    // Remove the project ID from the user's projects array
+    await User.updateOne({ _id: userId }, { $pull: { projects: projectId } });
+
+    // Delete the project itself
+    await Project.deleteOne({ _id: projectId });
+
+    return res.status(200).json({ message: 'Project and associated files successfully deleted' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Something went wrong while deleting the project' });
   }
 };

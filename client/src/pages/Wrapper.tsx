@@ -15,7 +15,7 @@ import * as t from "@babel/types";
 // ];
 
 const EDITABLE_ELEMENTS = [
-  'div', 'nav', 'ul', 'li', 'a', 'main', 'h1', 'p','h2', 'h3', 'h4', 'h5', 'h6'
+  'div','h1', 'p','h2', 'h3', 'h4', 'h5', 'h6'
 ];
 
 // Check if the content is a React component

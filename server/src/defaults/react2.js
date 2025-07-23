@@ -1,8 +1,8 @@
 export const basePrompt = `Here is an artifact that contains all files of the project visible to you.
 Consider the contents of ALL files in the project.
 
-<boltArtifact id="project-import" title="Project Files">
-<boltAction type="file" filePath="package.json">
+<genwebArtifact id="project-import" title="Project Files">
+<genwebAction type="file" filePath="package.json">
 {
   "name": "my-vite-app",
   "private": true,
@@ -30,9 +30,9 @@ Consider the contents of ALL files in the project.
     "vite": "^5.3.4"
   }
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="vite.config.js">
+<genwebAction type="file" filePath="vite.config.js">
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -40,9 +40,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 })
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/App.css">
+<genwebAction type="file" filePath="src/App.css">
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -85,9 +85,9 @@ export default defineConfig({
 .read-the-docs {
   color: #888;
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/App.jsx">
+<genwebAction type="file" filePath="src/App.jsx">
 import { useState } from 'react'
 import './App.css'
 
@@ -110,9 +110,9 @@ function App() {
 }
 
 export default App
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/index.css">
+<genwebAction type="file" filePath="src/index.css">
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -181,9 +181,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-</boltAction>
+</genwebAction>
 
-<boltAction type="file" filePath="src/main.jsx">
+<genwebAction type="file" filePath="src/main.jsx">
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
@@ -194,6 +194,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
-</boltAction>
-</boltArtifact>
+</genwebAction>
+</genwebArtifact>
 `;
